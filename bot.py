@@ -33,9 +33,13 @@ group_list=[
    882898618#, 560575955
     ]
 
-bilisearch_switch = False
-repeat_switch = False
-grass_switch = False
+# bilisearch_switch = False
+# repeat_switch = False
+# grass_switch = False
+#debug
+bilisearch_switch = True 
+repeat_switch = True
+grass_switch = True
 
 nonebot.init()
 nonebot.load_builtin_plugins()
@@ -128,8 +132,8 @@ async def switch_ask(session: CommandSession):
     msg = '当前功能列表:\nb站动态推送  %s\n复读  %s\n生草  %s' % ('启动中' if bilisearch_switch else '已关闭', '启动中' if repeat_switch else '已关闭','启动中' if grass_switch else '已关闭' )
     await session.send(msg)
 
-# @nonebot.scheduler.scheduled_job('interval',seconds=15) #测试用
-@nonebot.scheduler.scheduled_job('interval',minutes=5)
+@nonebot.scheduler.scheduled_job('interval',seconds=15) #测试用
+# @nonebot.scheduler.scheduled_job('interval',minutes=5)
 async def _():
     # 列表提示
     # global first_start
@@ -176,7 +180,7 @@ def GetDynamicStatus(uid, i):
     cards_data = json.loads(res)
     cards_data = cards_data['data']['cards']
     try:
-        with open(str(uid)+'_'+str(i)+'Dynamic','r') as f:
+        with open('./dynamic_files/'+str(uid)+'_'+str(i)+'Dynamic','r') as f:
             last_dynamic_str = f.read()
             f.close()
     except Exception as err:
@@ -228,7 +232,7 @@ def GetDynamicStatus(uid, i):
         if len(cards_data) == index:
             break
         cards_data[index]['card'] = json.loads(cards_data[index]['card'])
-    f = open(str(uid)+'_'+str(i)+'Dynamic','w')
+    f = open('./dynamic_files/'+str(uid)+'_'+str(i)+'Dynamic','w')
     f.write(cards_data[0]['desc']['dynamic_id_str'])
     f.close()
     return content_list
@@ -239,7 +243,7 @@ def GetLiveStatus(uid,i):
     res.encoding = 'utf-8'
     res = res.text
     try:
-        with open(str(uid)+'_'+str(i)+'Live','r') as f:
+        with open('./dynamic_files/'+str(uid)+'_'+str(i)+'Live','r') as f:
             last_live_str = f.read()
             f.close()
     except Exception as err:
@@ -249,7 +253,7 @@ def GetLiveStatus(uid,i):
     live_data = live_data['data']
     now_live_status = str(live_data['liveStatus'])
     live_title = live_data['title']
-    f = open(str(uid)+'_'+str(i)+'Live','w')
+    f = open('./dynamic_files/'+str(uid)+'_'+str(i)+'Live','w')
     f.write(now_live_status)
     f.close()
     if last_live_str == '0':
