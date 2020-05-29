@@ -8,6 +8,7 @@ import random
 import requests
 import json
 import time
+import os
 
 name_dict={}
 uidlist_list= []
@@ -193,6 +194,8 @@ def GetDynamicStatus(uid, i):
     #res = res.encode('utf-8')
     cards_data = json.loads(res)
     cards_data = cards_data['data']['cards']
+    if not os.path.exists('./dynamic_files/'):
+        os.mkdir('./dynamic_files')
     try:
         with open('./dynamic_files/'+str(uid)+'_'+str(i)+'Dynamic','r') as f:
             last_dynamic_str = f.read()
