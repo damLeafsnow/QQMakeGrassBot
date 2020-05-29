@@ -1,7 +1,4 @@
-
 # -*-coding:utf8-*-
-
-
 import nonebot
 from nonebot import on_command, CommandSession
 from nonebot import on_natural_language, NLPSession, IntentCommand
@@ -11,27 +8,11 @@ import random
 import requests
 import json
 import time
-#from jieba import posseg
-#import urllib
-#from lxml import etree
-#from .weather import get_weather_of_city
 
-name_dict={
-    353840826:'BCR', 354411419:'小话唠', 386900246:'狗妈',
-    380829248:'猫猫', 15773384:'哔哩哔哩电影', 1855051:'竹风羽',
-	456664753:'央视新闻', 33683045:'局座', 928123:'哔哩哔哩番剧',
-	362841475:'THBWiki', 19193:'Zelo-Balance',420711844:'夏色祭保護協会',
-	10330740:'观察者网', 20165629:'共青团中央', 21778636:'中国日报',
-	256667467:'崩坏3'
-}
-
-uidlist_list= [
-    [353840826, 456664753, 10330740, 20165629, 21778636, 19193, 420711844, 256667467, 15773384]
-    #,[15773384, 1855051, 456664753, 33683045,  10330740, 20165629, 21778636, 19193]
-]
-group_list=[
-   882898618#, 560575955
-    ]
+name_dict={}
+uidlist_list= []
+group_list=[]
+tempmsg = '' #复读延迟
 
 # bilisearch_switch = False
 # repeat_switch = False
@@ -46,18 +27,51 @@ nonebot.load_builtin_plugins()
 
 
 def main():
-#    print(GetDynamicStatus(1855051,0))
+    # 载入数据
+    try:
+        with open('./data_files/UID_Name_Dict', "r", encoding="utf-8") as f:
+            for line in f:
+                str_t = str(line)[:-1].replace(' ', '') #清理/n和空格
+                t = str_t.split(',') #分割
+                name_dict[t[0]] = t[1]
+            f.close()
+            # print (name_dict)
+    except Exception as err:
+        print (err)
+        exit()
+    try:
+        with open('./data_files/UID_List', "r", encoding="utf-8") as f:
+            for line in f:
+                str_t = str(line)[:-1].replace(' ', '') #清理/n和空格
+                t = str_t.split(',') #分割
+                uidlist_list.append(t)
+            f.close()
+            # print (uidlist_list)
+    except Exception as err:
+        print (err)
+        exit()
+    try:
+        with open('./data_files/QQ_Group_List', "r", encoding="utf-8") as f:
+            for line in f:
+                str_t = str(line)[:-1].replace(' ', '') #清理/n和空格
+                group_list.append(str_t)
+            f.close()
+            # print (group_list)
+    except Exception as err:
+        print (err)
+        exit()
+
     nonebot.run(host='127.0.0.1', port=8080)
 
 #复读
 @on_natural_language(only_to_me=False)
 async def repeat(session: NLPSession):
     if repeat_switch:
-        tempmsg = ''
+        global tempmsg
         msg = session.ctx["message"]
         groupnum=str(session.ctx['group_id'])
         print('群%s收到消息%s' % (groupnum, msg))
-        if int(groupnum) in group_list:
+        if groupnum in group_list:
             rnd = random.randint(1, 100)
             print('复读随机数:%d' % (rnd))
             if rnd <= 3:
@@ -66,13 +80,13 @@ async def repeat(session: NLPSession):
             if rnd >= 97:
                 print('复读')
                 await session.send(msg)
-            if rnd in range(47, 53):
+            if rnd in range(26, 36):
                 print('记录延迟复读')
                 tempmsg = msg
-            if rnd in range(15, 18):
+            if rnd in range(20, 25):
                 print('复读延迟复读')
                 await session.send(tempmsg)
-                tempmsg = '啊,这'
+                tempmsg = '还行'
         
 #不对劲
 @on_natural_language({'对劲', '问题', '草'}, only_to_me=False)
@@ -80,7 +94,7 @@ async def question(session: NLPSession):
     if grass_switch:
         msg = session.ctx["message"]
         groupnum=str(session.ctx['group_id'])
-        if int(groupnum) in group_list:
+        if groupnum in group_list:
             rnd = random.randint(1, 100)
             print('问题随机数:%d' % (rnd))
             if rnd <= 5:
@@ -132,8 +146,8 @@ async def switch_ask(session: CommandSession):
     msg = '当前功能列表:\nb站动态推送  %s\n复读  %s\n生草  %s' % ('启动中' if bilisearch_switch else '已关闭', '启动中' if repeat_switch else '已关闭','启动中' if grass_switch else '已关闭' )
     await session.send(msg)
 
-@nonebot.scheduler.scheduled_job('interval',seconds=15) #测试用
-# @nonebot.scheduler.scheduled_job('interval',minutes=5)
+# @nonebot.scheduler.scheduled_job('interval',seconds=15) #测试用
+@nonebot.scheduler.scheduled_job('interval',minutes=5)
 async def _():
     # 列表提示
     # global first_start
