@@ -212,8 +212,8 @@ def GetDynamicStatus(uid, i):
     nowtime = time.time().__int__()
     # card是字符串，需要重新解析
     while last_dynamic_str != cards_data[index]['desc']['dynamic_id_str']:
-        #这条是105 秒前发的。
-        if nowtime-cards_data[index]['desc']['timestamp'] > 105:
+        #这条是600秒前发的。
+        if nowtime-cards_data[index]['desc']['timestamp'] > 600:
             break
         try:
             if (cards_data[index]['desc']['type'] == 64):
