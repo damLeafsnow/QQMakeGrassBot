@@ -20,19 +20,31 @@
 
      > 首次运行后生成默认配置
      >
-     > 修改use_ws_reverse项为true
+     > 添加 ``"enable_heartbeat": true ``项
      >
-     > 修改ws_reverse_api_url为``ws://127.0.0.1:8080/ws/api/``
+     > 修改 ``use_ws_reverse``项为``true``
      >
-     > 修改ws_reverse_event_url为``ws://127.0.0.1:8080/ws/event/``
+     > 修改 ``ws_reverse_url`` 项为 ``ws://127.0.0.1:8080/ws/``
+     >
+     > 修改 ``ws_reverse_api_url`` 项为 ``ws://127.0.0.1:8080/ws/api/``
+     >
+     > 修改 ``ws_reverse_event_url`` 项为``ws://127.0.0.1:8080/ws/event/``
 
 ### 文件结构
 
 - QQMakeGrassBot
 
-  - data_files
+  - bot
 
-    > **以下文件需要结尾留一行空行**
+    > 主文件，用于启动bot
+
+  - config
+
+    > 参数设置文件
+
+  - datas
+
+    > 数据文件夹，存放数据文件
 
     - QQ_Group_List	
 
@@ -46,9 +58,17 @@
 
       > 每行以逗号分隔，为uid和对应的自定义名称(昵称)
 
-  - dynamic_files
+  - dynamics
 
-    > 运行时生成的临时文件，用于标记动态更新
+    > 临时文件夹，运行时生成的临时文件，用于标记动态更新
+
+  - plugins
+
+    > 插件文件夹，存放自定义插件
+
+    - weather
+
+      > 天气查询
 
 ### 开发进度
 

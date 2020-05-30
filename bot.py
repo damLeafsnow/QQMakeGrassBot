@@ -2,13 +2,17 @@
 import nonebot
 from nonebot import on_command, CommandSession
 from nonebot import on_natural_language, NLPSession, IntentCommand
+from nonebot import permission as perm
 from aiocqhttp.exceptions import Error as CQHttpError
 from datetime import datetime
 import random
 import requests
-import json
+import ujson
 import time
 import os
+from os import path
+
+import config
 
 name_dict={}
 uidlist_list= []
@@ -23,46 +27,19 @@ bilisearch_switch = True
 repeat_switch = True
 grass_switch = True
 
-nonebot.init()
-nonebot.load_builtin_plugins()
-
 
 def main():
+    # 初始化配置信息
+    nonebot.init(config)
     # 载入数据
-    try:
-        with open('./data_files/UID_Name_Dict', "r", encoding="utf-8") as f:
-            for line in f:
-                str_t = str(line)[:-1].replace(' ', '') #清理/n和空格
-                t = str_t.split(',') #分割
-                name_dict[t[0]] = t[1]
-            f.close()
-            # print (name_dict)
-    except Exception as err:
-        print (err)
-        exit()
-    try:
-        with open('./data_files/UID_List', "r", encoding="utf-8") as f:
-            for line in f:
-                str_t = str(line)[:-1].replace(' ', '') #清理/n和空格
-                t = str_t.split(',') #分割
-                uidlist_list.append(t)
-            f.close()
-            # print (uidlist_list)
-    except Exception as err:
-        print (err)
-        exit()
-    try:
-        with open('./data_files/QQ_Group_List', "r", encoding="utf-8") as f:
-            for line in f:
-                str_t = str(line)[:-1].replace(' ', '') #清理/n和空格
-                group_list.append(str_t)
-            f.close()
-            # print (group_list)
-    except Exception as err:
-        print (err)
-        exit()
-
-    nonebot.run(host='127.0.0.1', port=8080)
+    loadDatas()
+    # 载入插件
+    nonebot.load_plugins(
+        path.join(path.dirname(__file__), 'plugins'),
+        'plugins'
+        )
+    # 运行bot
+    nonebot.run()
 
 #复读
 @on_natural_language(only_to_me=False)
@@ -106,43 +83,43 @@ async def question(session: NLPSession):
                 await session.send('啊,这')
 
 #指令控制
-@on_command('启动推送', aliases=('开始推送',), only_to_me=False)
+@on_command('启动推送', aliases=('开始推送',), permission=perm.SUPERUSER, only_to_me=False)
 async def start_bilisearch(session: CommandSession):
     global bilisearch_switch
     await hello()
     bilisearch_switch = True
 
-@on_command('关闭推送', aliases=('停止推送','取消推送'), only_to_me=False)
+@on_command('关闭推送', aliases=('停止推送','取消推送'), permission=perm.SUPERUSER, only_to_me=False)
 async def close_bilisearch(session: CommandSession):
     global bilisearch_switch
     await session.send('已停止b站动态推送功能')
     bilisearch_switch = False
 
-@on_command('启动复读', aliases=('开始复读',), only_to_me=False)
+@on_command('启动复读', aliases=('开始复读',), permission=perm.SUPERUSER, only_to_me=False)
 async def start_repeat(session: CommandSession):
     global repeat_switch
     await session.send('已开启复读功能')
     repeat_switch = True
 
-@on_command('关闭复读', aliases=('停止复读','取消复读'), only_to_me=False)
+@on_command('关闭复读', aliases=('停止复读','取消复读'), permission=perm.SUPERUSER, only_to_me=False)
 async def close_repeat(session: CommandSession):
     global repeat_switch
     await session.send('已停止复读功能')
     repeat_switch = False
 
-@on_command('启动生草', aliases=('开始生草',), only_to_me=False)
+@on_command('启动生草', aliases=('开始生草',), permission=perm.SUPERUSER, only_to_me=False)
 async def start_grass(session: CommandSession):
     global grass_switch
     await session.send('已开启生草功能')
     grass_switch = True
 
-@on_command('关闭生草', aliases=('停止生草','取消生草'), only_to_me=False)
+@on_command('关闭生草', aliases=('停止生草','取消生草'), permission=perm.SUPERUSER, only_to_me=False)
 async def close_grass(session: CommandSession):
     global grass_switch
     await session.send('已停止生草功能')
     grass_switch = False
 
-@on_command('功能列表', aliases=('功能状态'), only_to_me=False)
+@on_command('功能列表', aliases=('功能状态'), permission=perm.SUPERUSER, only_to_me=False)
 async def switch_ask(session: CommandSession):
     msg = '当前功能列表:\nb站动态推送  %s\n复读  %s\n生草  %s' % ('启动中' if bilisearch_switch else '已关闭', '启动中' if repeat_switch else '已关闭','启动中' if grass_switch else '已关闭' )
     await session.send(msg)
@@ -185,6 +162,40 @@ async def hello():
         except CQHttpError as e:
             pass
 
+def loadDatas():
+    try:
+        with open('./datas/UID_Name_Dict', "r", encoding="utf-8") as f:
+            for line in f:
+                str_t = str(line).strip()#清理/n和空格
+                t = str_t.split(',') #分割
+                name_dict[t[0]] = t[1]
+            f.close()
+            # print (name_dict)
+    except Exception as err:
+        print (err)
+        exit()
+    try:
+        with open('./datas/UID_List', "r", encoding="utf-8") as f:
+            for line in f:
+                str_t = str(line).strip()#清理/n和空格
+                t = str_t.split(',') #分割
+                uidlist_list.append(t)
+            f.close()
+            # print (uidlist_list)
+    except Exception as err:
+        print (err)
+        exit()
+    try:
+        with open('./datas/QQ_Group_List', "r", encoding="utf-8") as f:
+            for line in f:
+                str_t = str(line).strip()#清理/n和空格
+                group_list.append(str_t)
+            f.close()
+            # print (group_list)
+    except Exception as err:
+        print (err)
+        exit()
+
 #用户uid 用户名列表索引
 def GetDynamicStatus(uid, i):
     res = requests.get('https://api.vc.bilibili.com/dynamic_svr/v1/dynamic_svr/space_history?host_uid='+str(uid)+'offset_dynamic_id=0')
@@ -192,12 +203,12 @@ def GetDynamicStatus(uid, i):
     res = res.text
     # print('获取动态数据'+str(res))
     #res = res.encode('utf-8')
-    cards_data = json.loads(res)
+    cards_data = ujson.loads(res)
     cards_data = cards_data['data']['cards']
-    if not os.path.exists('./dynamic_files/'):
-        os.mkdir('./dynamic_files')
+    if not os.path.exists('./dynamics/'):
+        os.mkdir('./dynamics')
     try:
-        with open('./dynamic_files/'+str(uid)+'_'+str(i)+'Dynamic','r') as f:
+        with open('./dynamics/'+str(uid)+'_'+str(i)+'Dynamic','r') as f:
             last_dynamic_str = f.read()
             f.close()
     except Exception as err:
@@ -208,7 +219,7 @@ def GetDynamicStatus(uid, i):
     print(last_dynamic_str)
     index = 0
     content_list=[]
-    cards_data[0]['card'] = json.loads(cards_data[0]['card'],encoding='gb2312')
+    cards_data[0]['card'] = ujson.loads(cards_data[0]['card'],encoding='gb2312')
     nowtime = time.time().__int__()
     # card是字符串，需要重新解析
     while last_dynamic_str != cards_data[index]['desc']['dynamic_id_str']:
@@ -231,7 +242,7 @@ def GetDynamicStatus(uid, i):
                             content_list.append('[CQ:image,file='+pic_info['img_src']+']')
                     else:
                         #这个表示转发，原动态的信息在 cards-item-origin里面。里面又是一个超级长的字符串……
-                        #origin = json.loads(cards_data[index]['card']['item']['origin'],encoding='gb2312') 我也不知道这能不能解析，没试过
+                        #origin = ujson.loads(cards_data[index]['card']['item']['origin'],encoding='gb2312') 我也不知道这能不能解析，没试过
                         #origin_name = 'Fuck'
                         if 'origin_user' in cards_data[index]['card']:
                             origin_name = cards_data[index]['card']['origin_user']['info']['uname']
@@ -248,8 +259,8 @@ def GetDynamicStatus(uid, i):
 #        print(index)
         if len(cards_data) == index:
             break
-        cards_data[index]['card'] = json.loads(cards_data[index]['card'])
-    f = open('./dynamic_files/'+str(uid)+'_'+str(i)+'Dynamic','w')
+        cards_data[index]['card'] = ujson.loads(cards_data[index]['card'])
+    f = open('./dynamics/'+str(uid)+'_'+str(i)+'Dynamic','w')
     f.write(cards_data[0]['desc']['dynamic_id_str'])
     f.close()
     return content_list
@@ -260,17 +271,17 @@ def GetLiveStatus(uid,i):
     res.encoding = 'utf-8'
     res = res.text
     try:
-        with open('./dynamic_files/'+str(uid)+'_'+str(i)+'Live','r') as f:
+        with open('./dynamics/'+str(uid)+'_'+str(i)+'Live','r') as f:
             last_live_str = f.read()
             f.close()
     except Exception as err:
             last_live_str = '0'
             pass
-    live_data = json.loads(res)
+    live_data = ujson.loads(res)
     live_data = live_data['data']
     now_live_status = str(live_data['liveStatus'])
     live_title = live_data['title']
-    f = open('./dynamic_files/'+str(uid)+'_'+str(i)+'Live','w')
+    f = open('./dynamics/'+str(uid)+'_'+str(i)+'Live','w')
     f.write(now_live_status)
     f.close()
     if last_live_str == '0':
