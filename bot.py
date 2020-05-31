@@ -7,7 +7,7 @@ from aiocqhttp.exceptions import Error as CQHttpError
 from datetime import datetime
 import random
 import requests
-import ujson
+import json
 import time
 import os
 from os import path
@@ -203,7 +203,7 @@ def GetDynamicStatus(uid, i):
     res = res.text
     # print('获取动态数据'+str(res))
     #res = res.encode('utf-8')
-    cards_data = ujson.loads(res)
+    cards_data = json.loads(res)
     cards_data = cards_data['data']['cards']
     if not os.path.exists('./dynamics/'):
         os.mkdir('./dynamics')
@@ -219,7 +219,7 @@ def GetDynamicStatus(uid, i):
     print(last_dynamic_str)
     index = 0
     content_list=[]
-    cards_data[0]['card'] = ujson.loads(cards_data[0]['card'],encoding='gb2312')
+    cards_data[0]['card'] = json.loads(cards_data[0]['card'],encoding='gb2312')
     nowtime = time.time().__int__()
     # card是字符串，需要重新解析
     while last_dynamic_str != cards_data[index]['desc']['dynamic_id_str']:
@@ -242,7 +242,7 @@ def GetDynamicStatus(uid, i):
                             content_list.append('[CQ:image,file='+pic_info['img_src']+']')
                     else:
                         #这个表示转发，原动态的信息在 cards-item-origin里面。里面又是一个超级长的字符串……
-                        #origin = ujson.loads(cards_data[index]['card']['item']['origin'],encoding='gb2312') 我也不知道这能不能解析，没试过
+                        #origin = json.loads(cards_data[index]['card']['item']['origin'],encoding='gb2312') 我也不知道这能不能解析，没试过
                         #origin_name = 'Fuck'
                         if 'origin_user' in cards_data[index]['card']:
                             origin_name = cards_data[index]['card']['origin_user']['info']['uname']
@@ -259,7 +259,7 @@ def GetDynamicStatus(uid, i):
 #        print(index)
         if len(cards_data) == index:
             break
-        cards_data[index]['card'] = ujson.loads(cards_data[index]['card'])
+        cards_data[index]['card'] = json.loads(cards_data[index]['card'])
     f = open('./dynamics/'+str(uid)+'_'+str(i)+'Dynamic','w')
     f.write(cards_data[0]['desc']['dynamic_id_str'])
     f.close()
@@ -277,7 +277,7 @@ def GetLiveStatus(uid,i):
     except Exception as err:
             last_live_str = '0'
             pass
-    live_data = ujson.loads(res)
+    live_data = json.loads(res)
     live_data = live_data['data']
     now_live_status = str(live_data['liveStatus'])
     live_title = live_data['title']

@@ -6,7 +6,7 @@ import requests
 import sys
 import ssl
 import importlib
-import ujson
+import json
 importlib.reload(sys)
 
 # on_command 装饰器将函数声明为一个命令处理器
@@ -40,7 +40,7 @@ async def get_weather_of_city(city: str) -> str:
     host = 'http://wthrcdn.etouch.cn/weather_mini?city='
     url = host + urllib.parse.quote(city)
     r = requests.get(url)
-    jsons = ujson.loads(r.text)
+    jsons = json.loads(r.text)
     str = city+'的天气为：\n'
     len = 0
     for i in jsons['data']['forecast']:
