@@ -3,6 +3,7 @@ import nonebot
 from nonebot import on_command, CommandSession
 from nonebot import on_natural_language, NLPSession, IntentCommand
 from nonebot import permission as perm
+from nonebot.plugin import PluginManager
 from aiocqhttp.exceptions import Error as CQHttpError
 from datetime import datetime
 import random
@@ -13,74 +14,85 @@ import os
 from os import path
 
 import config
+# import globalvar as gl
 
 name_dict={}
 uidlist_list= []
 group_list=[]
-tempmsg = '' #复读延迟
+# tempmsg = '' #复读延迟
 
 # bilisearch_switch = False
 # repeat_switch = False
 # grass_switch = False
 #debug
 bilisearch_switch = True 
-repeat_switch = True
+# repeat_switch = True
 grass_switch = True
 
 
 def main():
+    # 初始化全局数组
+    gl._init()
     # 初始化配置信息
     nonebot.init(config)
     # 载入数据
     loadDatas()
     # 载入插件
-    nonebot.load_plugins(
-        path.join(path.dirname(__file__), 'plugins'),
-        'plugins'
-        )
+    # nonebot.load_plugins(
+    #     path.join(path.dirname(__file__), 'plugins'),
+    #     'plugins'
+    #     )
+    PluginManager.add_plugin(path.join(path.dirname(__file__), 'plugins'), 'repeat')
+    PluginManager.add_plugin(path.join(path.dirname(__file__), 'plugins'), 'push')
+    PluginManager.add_plugin(path.join(path.dirname(__file__), 'plugins'), 'grass')
+    PluginManager.add_plugin(path.join(path.dirname(__file__), 'plugins'), 'weather')
+    nonebot.plugin.load_plugin('repeat')
+    # nonebot.load_plugin(path.join(path.dirname(__file__), 'plugins', 'repeat'))
+    # nonebot.load_plugin(path.join(path.dirname(__file__), 'plugins', 'push'))
+    # nonebot.load_plugin(path.join(path.dirname(__file__), 'plugins', 'weather'))
     # 运行bot
     nonebot.run()
 
-#复读
-@on_natural_language(only_to_me=False)
-async def repeat(session: NLPSession):
-    if repeat_switch:
-        global tempmsg
-        msg = session.ctx["message"]
-        groupnum=str(session.ctx['group_id'])
-        print('群%s收到消息%s' % (groupnum, msg))
-        if groupnum in group_list:
-            rnd = random.randint(1, 100)
-            print('复读随机数:%d' % (rnd))
-            if rnd <= 3:
-                print('生草')
-                await session.send('草', at_sender=True)
-            if rnd >= 97:
-                print('复读')
-                await session.send(msg)
-            if rnd in range(26, 36):
-                print('记录延迟复读')
-                tempmsg = msg
-            if rnd in range(20, 25):
-                print('复读延迟复读')
-                await session.send(tempmsg)
-                tempmsg = '还行'
+# #复读
+# @on_natural_language(only_to_me=False)
+# async def repeat(session: NLPSession):
+#     if repeat_switch:
+#         global tempmsg
+#         msg = session.ctx["message"]
+#         groupnum=str(session.ctx['group_id'])
+#         print('群%s收到消息%s' % (groupnum, msg))
+#         if groupnum in group_list:
+#             rnd = random.randint(1, 100)
+#             print('复读随机数:%d' % (rnd))
+#             if rnd <= 3:
+#                 print('生草')
+#                 await session.send('草', at_sender=True)
+#             if rnd >= 97:
+#                 print('复读')
+#                 await session.send(msg)
+#             if rnd in range(26, 36):
+#                 print('记录延迟复读')
+#                 tempmsg = msg
+#             if rnd in range(20, 25):
+#                 print('复读延迟复读')
+#                 await session.send(tempmsg)
+#                 tempmsg = '还行'
         
-#不对劲
-@on_natural_language({'对劲', '问题', '草'}, only_to_me=False)
-async def question(session: NLPSession):
-    if grass_switch:
-        msg = session.ctx["message"]
-        groupnum=str(session.ctx['group_id'])
-        if groupnum in group_list:
-            rnd = random.randint(1, 100)
-            print('问题随机数:%d' % (rnd))
-            if rnd <= 5:
-                await session.send('不对劲')
-            if rnd >= 95:
-                await session.send('你有问题', at_sender=True)
-            if rnd in range(45, 55):
-                await session.send('啊,这')
+# #不对劲
+# @on_natural_language({'对劲', '问题', '草'}, only_to_me=False)
+# async def question(session: NLPSession):
+#     if grass_switch:
+#         msg = session.ctx["message"]
+#         groupnum=str(session.ctx['group_id'])
+#         if groupnum in group_list:
+#             rnd = random.randint(1, 100)
+#             print('问题随机数:%d' % (rnd))
+#             if rnd <= 5:
+#                 await session.send('不对劲')
+#             if rnd >= 95:
+#                 await session.send('你有问题', at_sender=True)
+#             if rnd in range(45, 55):
+#                 await session.send('啊,这')
 
 #指令控制
 @on_command('启动推送', aliases=('开始推送',), permission=perm.SUPERUSER, only_to_me=False)
@@ -95,34 +107,34 @@ async def close_bilisearch(session: CommandSession):
     await session.send('已停止b站动态推送功能')
     bilisearch_switch = False
 
-@on_command('启动复读', aliases=('开始复读',), permission=perm.SUPERUSER, only_to_me=False)
-async def start_repeat(session: CommandSession):
-    global repeat_switch
-    await session.send('已开启复读功能')
-    repeat_switch = True
+# @on_command('启动复读', aliases=('开始复读',), permission=perm.SUPERUSER, only_to_me=False)
+# async def start_repeat(session: CommandSession):
+#     global repeat_switch
+#     await session.send('已开启复读功能')
+#     repeat_switch = True
 
-@on_command('关闭复读', aliases=('停止复读','取消复读'), permission=perm.SUPERUSER, only_to_me=False)
-async def close_repeat(session: CommandSession):
-    global repeat_switch
-    await session.send('已停止复读功能')
-    repeat_switch = False
+# @on_command('关闭复读', aliases=('停止复读','取消复读'), permission=perm.SUPERUSER, only_to_me=False)
+# async def close_repeat(session: CommandSession):
+#     global repeat_switch
+#     await session.send('已停止复读功能')
+#     repeat_switch = False
 
-@on_command('启动生草', aliases=('开始生草',), permission=perm.SUPERUSER, only_to_me=False)
-async def start_grass(session: CommandSession):
-    global grass_switch
-    await session.send('已开启生草功能')
-    grass_switch = True
+# @on_command('启动生草', aliases=('开始生草',), permission=perm.SUPERUSER, only_to_me=False)
+# async def start_grass(session: CommandSession):
+#     global grass_switch
+#     await session.send('已开启生草功能')
+#     grass_switch = True
 
-@on_command('关闭生草', aliases=('停止生草','取消生草'), permission=perm.SUPERUSER, only_to_me=False)
-async def close_grass(session: CommandSession):
-    global grass_switch
-    await session.send('已停止生草功能')
-    grass_switch = False
+# @on_command('关闭生草', aliases=('停止生草','取消生草'), permission=perm.SUPERUSER, only_to_me=False)
+# async def close_grass(session: CommandSession):
+#     global grass_switch
+#     await session.send('已停止生草功能')
+#     grass_switch = False
 
-@on_command('功能列表', aliases=('功能状态'), permission=perm.SUPERUSER, only_to_me=False)
-async def switch_ask(session: CommandSession):
-    msg = '当前功能列表:\nb站动态推送  %s\n复读  %s\n生草  %s' % ('启动中' if bilisearch_switch else '已关闭', '启动中' if repeat_switch else '已关闭','启动中' if grass_switch else '已关闭' )
-    await session.send(msg)
+# @on_command('功能列表', aliases=('功能状态'), permission=perm.SUPERUSER, only_to_me=False)
+# async def switch_ask(session: CommandSession):
+#     msg = '当前功能列表:\nb站动态推送  %s\n复读  %s\n生草  %s\n天气查询  %s' % ('启动中' if bilisearch_switch else '已关闭', '启动中' if repeat_switch else '已关闭','启动中' if grass_switch else '已关闭', '启动中' if weather.weather_switch else '已关闭' )
+#     await session.send(msg)
 
 # @nonebot.scheduler.scheduled_job('interval',seconds=15) #测试用
 @nonebot.scheduler.scheduled_job('interval',minutes=5)
@@ -195,6 +207,9 @@ def loadDatas():
     except Exception as err:
         print (err)
         exit()
+    gl.set_value('name_dict', name_dict)
+    gl.set_value('uidlist_list', uidlist_list)
+    gl.set_value('group_list', group_list)
 
 #用户uid 用户名列表索引
 def GetDynamicStatus(uid, i):
@@ -292,50 +307,3 @@ def GetLiveStatus(uid,i):
 
 if __name__ == "__main__":
     main()
-
-# @on_command('weather', aliases=('的天气', '天气预报', '查天气'))
-# async def weather(session: CommandSession):
-#     city = session.get('city', prompt='你想查询哪个城市的天气呢？')
-#     weather_report = await get_weather_of_city(city)
-#     await session.send(weather_report)
-
-
-# @weather.args_parser
-# async def _(session: CommandSession):
-#     stripped_arg = session.current_arg_text.strip() 
-# 　　 # current_arg_text.strip()是用来去掉字符串的首位空格
-
-#     if session.is_first_run:
-#         if stripped_arg:
-#             session.state['city'] = stripped_arg
-#         return
-
-#     if not stripped_arg:
-#         session.pause('要查询的城市名称不能为空呢，请重新输入')
-
-#     session.state[session.current_key] = stripped_arg
-
-
-# # on_natural_language 装饰器将函数声明为一个自然语言处理器
-# # keywords 表示需要响应的关键词，类型为任意可迭代对象，元素类型为 str
-# # 如果不传入 keywords，则响应所有没有被当作命令处理的消息
-# @on_natural_language(keywords={'的天气'},only_to_me=False)
-# async def _(session: NLPSession):
-#     # 去掉消息首尾的空白符
-#     stripped_msg = session.msg_text.strip()
-#     print(stripped_msg)
-#     # 对消息进行分词和词性标注
-#     words = posseg.lcut(stripped_msg)
-
-#     city = None
-#     # 遍历 posseg.lcut 返回的列表
-#     for word in words:
-#         # 每个元素是一个 pair 对象，包含 word 和 flag 两个属性，分别表示词和词性
-#         if word.flag == 'ns':
-#             # ns 词性表示地名
-#             print(word.flag)
-#             city = word.word
-#             break
-
-#     # 返回意图命令，前两个参数必填，分别表示置信度和意图命令名
-#     return IntentCommand(90.0, 'weather', current_arg=city)
