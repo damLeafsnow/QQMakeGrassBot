@@ -17,7 +17,7 @@ import config
 name_dict={}
 uidlist_list= []
 group_list=[]
-tempmsg = '' #复读延迟
+tempmsg = ['','','','',''] #复读延迟
 
 # bilisearch_switch = False
 # repeat_switch = False
@@ -60,14 +60,17 @@ async def repeat(session: NLPSession):
                 await session.send(msg)
             if rnd in range(26, 36):
                 print('记录延迟复读')
-                tempmsg = msg
+                tempmsg[random.randint(1, 5)] = msg
             if rnd in range(20, 25):
                 print('复读延迟复读')
-                await session.send(tempmsg)
-                tempmsg = '还行'
+                i = random.randint(1, 5)
+                await session.send(tempmsg[i])
+                tempmsg[i] = '还行'
+            if rnd in range(65, 68):
+                await session.send('?')
         
 #不对劲
-@on_natural_language({'对劲', '问题', '草'}, only_to_me=False)
+@on_natural_language({'对劲', '问题', '草', '?', '行', '这', '啊'}, only_to_me=False)
 async def question(session: NLPSession):
     if grass_switch:
         msg = session.ctx["message"]
@@ -81,6 +84,10 @@ async def question(session: NLPSession):
                 await session.send('你有问题', at_sender=True)
             if rnd in range(45, 55):
                 await session.send('啊,这')
+            if rnd in range(25, 30):
+                await session.send('¿')
+            if rnd in range (75, 80):
+                await session.send('我觉得不行')
 
 #指令控制
 @on_command('启动推送', aliases=('开始推送',), permission=perm.SUPERUSER, only_to_me=False)
