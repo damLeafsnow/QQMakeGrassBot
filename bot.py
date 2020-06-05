@@ -22,10 +22,12 @@ tempmsg = ['','','','',''] #复读延迟
 # bilisearch_switch = False
 # repeat_switch = False
 # grass_switch = False
+#human_switch = False
 #debug
 bilisearch_switch = True 
 repeat_switch = True
 grass_switch = True
+human_switch = True
 
 
 def main():
@@ -69,9 +71,9 @@ async def repeat(session: NLPSession):
             if rnd in range(65, 68):
                 await session.send('?')
         
-#不对劲
-@on_natural_language({'对劲', '问题', '草', '?', '行', '这', '啊'}, only_to_me=False)
-async def question(session: NLPSession):
+#生草
+@on_natural_language({'对劲', '问题', '草', '?', '？', '行', '这', '啊', '知道', '懂', '会'}, only_to_me=False)
+async def grass(session: NLPSession):
     if grass_switch:
         msg = session.ctx["message"]
         groupnum=str(session.ctx['group_id'])
@@ -85,9 +87,36 @@ async def question(session: NLPSession):
             if rnd in range(45, 55):
                 await session.send('啊,这')
             if rnd in range(25, 30):
-                await session.send('¿')
+                await session.send(u'؟?ذذ؟??¿؟زز¿؟¿???ذ¿')
             if rnd in range (75, 80):
                 await session.send('我觉得不行')
+            if rnd in range (84, 89):
+                await session.send('你很懂哦')
+            if rnd in range (11, 17):
+                await session.send('不会吧?不会吧?')
+#人性化复读
+@on_natural_language({'有一说一', '确实', '没错', '可以', '好', '坏', '成精', '来了', '走了'}, only_to_me=False)
+async def human(session: NLPSession):
+	if human_switch:
+		msg = session.ctx["message"]
+		groupnum=str(session.ctx['group_id'])
+		if groupnum in group_list:
+			rnd = random.randint(1, 100)
+			print('问题随机数:%d' % (rnd))
+			if rnd <= 5:
+				await session.send('挺好')
+			if rnd >= 95:
+				await session.send('确实', at_sender=True)
+			if rnd in range(45, 55):
+				await session.send('好', at_sender=True)
+			if rnd in range(25, 30):
+				await session.send('我觉得ok')
+			if rnd in range (75, 80):
+				await session.send('你这不行')
+			if rnd in range (84, 8):
+				await session.send('溜了溜了')
+			if rnd in range (11, 17):
+				await session.send('这不好吧')
 
 #指令控制
 @on_command('启动推送', aliases=('开始推送',), permission=perm.SUPERUSER, only_to_me=False)
@@ -145,6 +174,7 @@ async def _():
             # for uidlist in uidlist_list: #遍历群索引对应关注列表
             for uid in uidlist_list[i]:         #遍历每个uid
                 res=''
+                time.sleep(0.1)
                 dynamic_content = GetDynamicStatus(uid, i)
                 for content in dynamic_content:
                     try:
