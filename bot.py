@@ -17,7 +17,7 @@ import config
 name_dict={}
 uidlist_list= []
 group_list=[]
-tempmsg = ['','','','',''] #复读延迟
+tempmsg = [] #复读延迟
 
 # bilisearch_switch = False
 # repeat_switch = False
@@ -36,10 +36,10 @@ def main():
     # 载入数据
     loadDatas()
     # 载入插件
-    nonebot.load_plugins(
-        path.join(path.dirname(__file__), 'plugins'),
-        'plugins'
-        )
+    #nonebot.load_plugins(
+        #path.join(path.dirname(__file__), 'plugins'),
+        #'plugins'
+        #)
     # 运行bot
     nonebot.run()
 
@@ -54,21 +54,22 @@ async def repeat(session: NLPSession):
         if groupnum in group_list:
             rnd = random.randint(1, 100)
             print('复读随机数:%d' % (rnd))
-            if rnd <= 3:
+            if rnd <= 1:
                 print('生草')
                 await session.send('草', at_sender=True)
-            if rnd >= 97:
+            if rnd >= 99:
                 print('复读')
                 await session.send(msg)
-            if rnd in range(26, 36):
+            if rnd in range(85, 88):
                 print('记录延迟复读')
-                tempmsg[random.randint(1, 5)] = msg
-            if rnd in range(20, 25):
+                tempmsg.append(msg)
+                # tempmsg[random.randint(1, 5)] = msg
+            if rnd in range(15, 18):
                 print('复读延迟复读')
-                i = random.randint(1, 5)
+                i = random.randint(1, len(tempmsg))
                 await session.send(tempmsg[i])
-                tempmsg[i] = '还行'
-            if rnd in range(65, 68):
+                tempmsg.remove(tempmsg[i])
+            if rnd in range(67, 68):
                 await session.send('?')
         
 #生草
@@ -80,19 +81,19 @@ async def grass(session: NLPSession):
         if groupnum in group_list:
             rnd = random.randint(1, 100)
             print('问题随机数:%d' % (rnd))
-            if rnd <= 5:
+            if rnd <= 1:
                 await session.send('不对劲')
-            if rnd >= 95:
+            if rnd >= 99:
                 await session.send('你有问题', at_sender=True)
-            if rnd in range(45, 55):
+            if rnd == 4:
                 await session.send('啊,这')
-            if rnd in range(25, 30):
+            if rnd == 5:
                 await session.send(u'؟?ذذ؟??¿؟زز¿؟¿???ذ¿')
-            if rnd in range (75, 80):
+            if rnd == 6:
                 await session.send('我觉得不行')
-            if rnd in range (84, 89):
+            if rnd == 7:
                 await session.send('你很懂哦')
-            if rnd in range (11, 17):
+            if rnd == 8:
                 await session.send('不会吧?不会吧?')
 #人性化复读
 @on_natural_language({'有一说一', '确实', '没错', '可以', '好', '坏', '成精', '来了', '走了'}, only_to_me=False)
@@ -103,19 +104,19 @@ async def human(session: NLPSession):
 		if groupnum in group_list:
 			rnd = random.randint(1, 100)
 			print('问题随机数:%d' % (rnd))
-			if rnd <= 5:
+			if rnd <= 1:
 				await session.send('挺好')
-			if rnd >= 95:
+			if rnd >= 99:
 				await session.send('确实', at_sender=True)
-			if rnd in range(45, 55):
+			if rnd == 2:
 				await session.send('好', at_sender=True)
-			if rnd in range(25, 30):
+			if rnd == 3:
 				await session.send('我觉得ok')
-			if rnd in range (75, 80):
+			if rnd == 4:
 				await session.send('你这不行')
-			if rnd in range (84, 8):
+			if rnd == 5:
 				await session.send('溜了溜了')
-			if rnd in range (11, 17):
+			if rnd == 6:
 				await session.send('这不好吧')
 
 #指令控制
@@ -174,7 +175,7 @@ async def _():
             # for uidlist in uidlist_list: #遍历群索引对应关注列表
             for uid in uidlist_list[i]:         #遍历每个uid
                 res=''
-                time.sleep(0.1)
+                time.sleep(1)
                 dynamic_content = GetDynamicStatus(uid, i)
                 for content in dynamic_content:
                     try:
