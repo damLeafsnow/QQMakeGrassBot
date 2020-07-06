@@ -4,6 +4,7 @@ from nonebot import on_command, CommandSession
 from nonebot import on_natural_language, NLPSession, IntentCommand
 from nonebot import permission as perm
 from aiocqhttp.exceptions import Error as CQHttpError
+from aiocqhttp import MessageSegment
 from datetime import datetime
 import random
 import requests
@@ -57,18 +58,23 @@ async def repeat(session: NLPSession):
             if rnd <= 1:
                 print('生草')
                 await session.send('草', at_sender=True)
-            if rnd >= 99:
+            if rnd >= 98:
                 print('复读')
-                await session.send(msg)
+                if session.msg_images:
+                    seq = MessageSegment.image(session.msg_images[0])
+                    await session.send(seq)
+                else:
+                    await session.send(msg)
             if rnd in range(85, 88):
                 print('记录延迟复读')
                 tempmsg.append(msg)
                 # tempmsg[random.randint(1, 5)] = msg
             if rnd in range(15, 18):
                 print('复读延迟复读')
-                i = random.randint(1, len(tempmsg))
-                await session.send(tempmsg[i])
-                tempmsg.remove(tempmsg[i])
+                if tempmsg: #判断非空
+                    i = random.randint(1, len(tempmsg))
+                    await session.send(tempmsg[i])
+                    tempmsg.remove(tempmsg[i])
             if rnd in range(67, 68):
                 await session.send('?')
         
@@ -269,7 +275,8 @@ def GetDynamicStatus(uid, i):
                 content_list.append(name_dict[uid] +'发了新专栏「'+ cards_data[index]['card']['title'] + '」并说： ' +cards_data[index]['card']['dynamic'])
             else:
                 if (cards_data[index]['desc']['type'] == 8):
-                    content_list.append(name_dict[uid] + '发了新视频「'+ cards_data[index]['card']['title'] + '」并说： ' +cards_data[index]['card']['dynamic'])
+                    content_list.append(name_dict[uid] + '发了新视频「'+ cards_data[index]['card']['title'] + '」并说： ' +cards_data[index]['card']['dynamic']
+                    +'\n'+'[CQ:image,file='+cards_data[index]['card']['face']+']')
                 else:         
                     if ('description' in cards_data[index]['card']['item']):
                         #这个是带图新动态
