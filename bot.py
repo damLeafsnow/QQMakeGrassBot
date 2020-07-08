@@ -18,18 +18,13 @@ import config
 name_dict={}
 uidlist_list= []
 group_list=[]
+live_list=[]
 tempmsg = [] #复读延迟
 
-# bilisearch_switch = False
-# repeat_switch = False
-# grass_switch = False
-#human_switch = False
-#debug
 bilisearch_switch = True 
 repeat_switch = True
 grass_switch = True
 human_switch = True
-
 
 def main():
     # 初始化配置信息
@@ -37,10 +32,10 @@ def main():
     # 载入数据
     loadDatas()
     # 载入插件
-    #nonebot.load_plugins(
-        #path.join(path.dirname(__file__), 'plugins'),
-        #'plugins'
-        #)
+    nonebot.load_plugins(
+        path.join(path.dirname(__file__), 'plugins'),
+        'plugins'
+        )
     # 运行bot
     nonebot.run()
 
@@ -167,7 +162,7 @@ async def switch_ask(session: CommandSession):
     msg = '当前功能列表:\nb站动态推送  %s\n复读  %s\n生草  %s' % ('启动中' if bilisearch_switch else '已关闭', '启动中' if repeat_switch else '已关闭','启动中' if grass_switch else '已关闭' )
     await session.send(msg)
 
-# @nonebot.scheduler.scheduled_job('interval',seconds=15) #测试用
+# @nonebot.scheduler.scheduled_job('interval',seconds=30) #测试用
 @nonebot.scheduler.scheduled_job('interval',minutes=5)
 async def _():
     # 列表提示
@@ -179,19 +174,24 @@ async def _():
         bot = nonebot.get_bot()
         for i in range(0, len(group_list)): #遍历所有群
             # for uidlist in uidlist_list: #遍历群索引对应关注列表
-            for uid in uidlist_list[i]:         #遍历每个uid
-                res=''
-                time.sleep(1)
-                dynamic_content = GetDynamicStatus(uid, i)
-                for content in dynamic_content:
-                    try:
-                        res = await bot.send_group_msg(group_id=group_list[i], message=content)
-                    except CQHttpError as e:
-                        pass
-                #live_status = GetLiveStatus(uidlist_list[i])
-                #if live_status != '':
-                #    for groupnum in group_list[i]:
-                #        await bot.send_group_msg(group_id=groupnum, message=name_list[i] +' 开播啦啦啦！！！ ' + live_status)
+            if i < len(uidlist_list):
+                for uid in uidlist_list[i]:  #遍历每个uid
+                    time.sleep(1)
+                    dynamic_content = GetDynamicStatus(uid, i)
+                    for content in dynamic_content:
+                        try:
+                            res = await bot.send_group_msg(group_id=group_list[i], message=content)
+                        except CQHttpError as e:
+                            print(e)
+            if i < len(live_list):
+                for uid in live_list[i]:         #遍历每个uid
+                    time.sleep(1)
+                    live_msg = GetLiveStatus(uid, i)
+                    for content in live_msg:
+                        try:
+                            res = await bot.send_group_msg(group_id=group_list[i], message=content)
+                        except CQHttpError as e:
+                            print(e)
 
 async def hello():
     bot = nonebot.get_bot()
@@ -204,7 +204,7 @@ async def hello():
         try:
             hello_msg = await bot.send_group_msg(group_id=group_list[i], message=hello_msg)
         except CQHttpError as e:
-            pass
+            print(e)
 
 def loadDatas():
     try:
@@ -215,6 +215,17 @@ def loadDatas():
                 name_dict[t[0]] = t[1]
             f.close()
             # print (name_dict)
+    except Exception as err:
+        print (err)
+        exit()
+    try:
+        with open('./datas/UID_Live_List', "r", encoding="utf-8") as f:
+            for line in f:
+                str_t = str(line).strip()#清理/n和空格
+                t = str_t.split(',') #分割
+                live_list.append(t)
+            f.close()
+            # print (group_list)
     except Exception as err:
         print (err)
         exit()
@@ -240,13 +251,12 @@ def loadDatas():
         print (err)
         exit()
 
+
 #用户uid 用户名列表索引
 def GetDynamicStatus(uid, i):
     res = requests.get('https://api.vc.bilibili.com/dynamic_svr/v1/dynamic_svr/space_history?host_uid='+str(uid)+'offset_dynamic_id=0')
     res.encoding='utf-8'
     res = res.text
-    # print('获取动态数据'+str(res))
-    #res = res.encode('utf-8')
     cards_data = json.loads(res)
     cards_data = cards_data['data']['cards']
     if not os.path.exists('./dynamics/'):
@@ -257,10 +267,10 @@ def GetDynamicStatus(uid, i):
             f.close()
     except Exception as err:
         last_dynamic_str=''
-        pass
+        print(err)
     if last_dynamic_str == '':
         last_dynamic_str = cards_data[1]['desc']['dynamic_id_str']
-    print(last_dynamic_str)
+    # print(last_dynamic_str)
     index = 0
     content_list=[]
     cards_data[0]['card'] = json.loads(cards_data[0]['card'],encoding='gb2312')
@@ -273,22 +283,23 @@ def GetDynamicStatus(uid, i):
         try:
             if (cards_data[index]['desc']['type'] == 64):
                 content_list.append(name_dict[uid] +'发了新专栏「'+ cards_data[index]['card']['title'] + '」并说： ' +cards_data[index]['card']['dynamic'])
+                imageurls = cards_data[index]['card']['image_urls']
+                if imageurls:
+                    for images in cards_data[index]['card']['image_urls']:
+                        content_list.append('[CQ:image,file='+images+']')
             else:
                 if (cards_data[index]['desc']['type'] == 8):
-                    content_list.append(name_dict[uid] + '发了新视频「'+ cards_data[index]['card']['title'] + '」并说： ' +cards_data[index]['card']['dynamic']
-                    +'\n'+'[CQ:image,file='+cards_data[index]['card']['face']+']')
+                    content_list.append(name_dict[uid] + '发了新视频「'+ cards_data[index]['card']['title'] + '」并说： ' +cards_data[index]['card']['dynamic'])
+                    content_list.append('[CQ:image,file='+cards_data[index]['card']['pic']+']')
                 else:         
                     if ('description' in cards_data[index]['card']['item']):
-                        #这个是带图新动态
+                        # 带图新动态
                         content_list.append(name_dict[uid] + '发了新动态： ' +cards_data[index]['card']['item']['description'])
-                        print('Fuck')
-                        #CQ使用参考：[CQ:image,file=http://i1.piimg.com/567571/fdd6e7b6d93f1ef0.jpg]
+                        # CQ使用参考：[CQ:image,file=http://i1.piimg.com/567571/fdd6e7b6d93f1ef0.jpg]
                         for pic_info in cards_data[index]['card']['item']['pictures']:
                             content_list.append('[CQ:image,file='+pic_info['img_src']+']')
                     else:
-                        #这个表示转发，原动态的信息在 cards-item-origin里面。里面又是一个超级长的字符串……
-                        #origin = json.loads(cards_data[index]['card']['item']['origin'],encoding='gb2312') 我也不知道这能不能解析，没试过
-                        #origin_name = 'Fuck'
+                        # 转发动态
                         if 'origin_user' in cards_data[index]['card']:
                             origin_name = cards_data[index]['card']['origin_user']['info']['uname']
                             content_list.append(name_dict[uid]+ '转发了「'+ origin_name + '」的动态并说： ' +cards_data[index]['card']['item']['content'])
@@ -298,7 +309,7 @@ def GetDynamicStatus(uid, i):
             content_list.append('本条动态地址为'+'https://t.bilibili.com/'+ cards_data[index]['desc']['dynamic_id_str'])
         except Exception as err:
                 print('PROCESS ERROR')
-                pass
+                print(err)
         index += 1
 #        print(len(cards_data))
 #        print(index)
@@ -321,22 +332,70 @@ def GetLiveStatus(uid,i):
             f.close()
     except Exception as err:
             last_live_str = '0'
-            pass
+            print(err)
     live_data = json.loads(res)
     live_data = live_data['data']
     now_live_status = str(live_data['liveStatus'])
-    live_title = live_data['title']
     f = open('./dynamics/'+str(uid)+'_'+str(i)+'Live','w')
     f.write(now_live_status)
     f.close()
     if last_live_str == '0':
         if now_live_status == '1':
-            return live_title
+            live_title = live_data['title']
+            live_url = live_data['url']
+            live_cover = live_data['cover']
+            live_watcher = str(live_data['online'])
+            live_msg = []
+            live_msg.append(name_dict[uid] +'直播中:' + live_title)
+            live_msg.append('[CQ:image,file='+live_cover+']')
+            live_msg.append('直播地址:'+live_url+'当前观看人数:'+live_watcher)
+            return live_msg
     return ''
 
+@on_command('.测试', aliases=('.test'), only_to_me=False)
+async def test(session: CommandSession):
+    await session.send(MessageSegment.image(os.getcwd()+"/grass.jpg"))
+
+# 关注数据管理
+@on_command('.字典查询', aliases=('.uid'), only_to_me=False)
+async def search_uid_name_dict(session: CommandSession):
+    uid = session.current_arg_text.strip()
+    if not uid:
+        await session.send('你uid呢?')
+        return
+    if uid in name_dict:
+        await session.send('查询到uid'+uid+'->'+name_dict[uid])
+    else:
+        await session.send('uid'+uid+'未添加,可用过\".添加uid uid\"或\".add uid\"添加.')
+
+@on_command('.添加uid', aliases=('.add'), only_to_me=False)
+async def add_uid_name_dict(session: CommandSession):
+    uid = session.current_arg_text.strip()
+    if not uid:
+        await session.send('你uid呢?')
+        return
+    if uid in name_dict:
+        await session.send('uid'+uid+'('+name_dict[uid]+')'+'已存在.')
+    else:
+        res = requests.get('https://api.bilibili.com/x/space/acc/info?mid='+str(uid))
+        res.encoding = 'utf-8'
+        res = res.text
+        user_data = json.loads(res)
+        data = user_data['data']
+        msg = []
+        msg.append('查询到uid'+uid)
+        msg.append('[CQ:image,file='+data['face']+']')
+        msg.append('用户名'+data['name']+',性别'+data['sex']+',个人签名'+data['sign'])
+        msg.append('已添加到关注字典(不存在的,没写完呢),可通过xxx指令添加到动态关注或直播关注列表(在写了).')
+        for content in msg:
+            try:
+                res = await session.send(content)
+            except CQHttpError as e:
+                print(e) 
 
 if __name__ == "__main__":
     main()
+
 
 # @on_command('weather', aliases=('的天气', '天气预报', '查天气'))
 # async def weather(session: CommandSession):

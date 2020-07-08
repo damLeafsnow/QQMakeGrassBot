@@ -1,13 +1,8 @@
 # -*-coding:utf8-*-
 from nonebot import on_command, CommandSession
-import urllib.request
-from urllib.request import urlopen
-import requests
-import sys
-import ssl
-import importlib
-import json
-importlib.reload(sys)
+from .data_source import get_weather_of_city
+from nonebot import on_natural_language, NLPSession, IntentCommand
+from jieba import posseg
 
 # on_command 装饰器将函数声明为一个命令处理器
 # 这里 weather 为命令的名字，同时允许使用别名「天气」「天气查询」「查天气」
@@ -36,26 +31,23 @@ async def _(session: CommandSession):
     # 如果当前正在向用户询问更多信息（例如本例中的要查询的城市），且用户输入有效，则放入会话状态
     session.state[session.current_key] = stripped_arg
 
-async def get_weather_of_city(city: str) -> str:
-    host = 'http://wthrcdn.etouch.cn/weather_mini?city='
-    url = host + urllib.parse.quote(city)
-    r = requests.get(url)
-    jsons = json.loads(r.text)
-    str = city+'的天气为：\n'
-    len = 0
-    for i in jsons['data']['forecast']:
-        if len < 2:
-            if len == 0:
-                str += '今日：'
-            if len == 1:
-                str += '明日：'
-            str += i['date']
-            str += '\n天气：'
-            str += i['type']
-            str += '\n最'
-            str += i['low']
-            str += '\n最'
-            str += i['high']
-            str += '\n'
-            len += 1
-    return str
+# on_natural_language 装饰器将函数声明为一个自然语言处理器
+# keywords 表示需要响应的关键词，类型为任意可迭代对象，元素类型为 str
+# 如果不传入 keywords，则响应所有没有被当作命令处理的消息
+@on_natural_language({'天气'}, only_to_me=False)
+async def _(session: NLPSession):
+    # 去掉消息首尾的空白符
+    stripped_msg = session.msg_text.strip()
+    # 对消息进行分词和词性标注
+    words = posseg.lcut(stripped_msg)
+
+    city = None
+    # 遍历 posseg.lcut 返回的列表
+    for word in words:
+        # 每个元素是一个 pair 对象，包含 word 和 flag 两个属性，分别表示词和词性
+        if word.flag == 'ns':
+            # ns 词性表示地名
+            city = word.word
+            break
+    # 返回意图命令，前两个参数必填，分别表示置信度和意图命令名
+    return IntentCommand(90.0, 'weather', current_arg=city or '')
