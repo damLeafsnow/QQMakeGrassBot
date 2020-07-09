@@ -67,7 +67,7 @@ async def repeat(session: NLPSession):
             if rnd in range(15, 18):
                 print('复读延迟复读')
                 if tempmsg: #判断非空
-                    i = random.randint(1, len(tempmsg))
+                    i = random.randint(0, len(tempmsg)-1)
                     await session.send(tempmsg[i])
                     tempmsg.remove(tempmsg[i])
             if rnd in range(67, 68):
@@ -170,6 +170,7 @@ async def _():
     # if first_start==True:
     #     await hello()
     #     first_start=False
+    loadDatas()
     if bilisearch_switch:
         bot = nonebot.get_bot()
         for i in range(0, len(group_list)): #遍历所有群
@@ -181,6 +182,7 @@ async def _():
                     for content in dynamic_content:
                         try:
                             res = await bot.send_group_msg(group_id=group_list[i], message=content)
+                            time.sleep(0.2)
                         except CQHttpError as e:
                             print(e)
             if i < len(live_list):
@@ -190,6 +192,7 @@ async def _():
                     for content in live_msg:
                         try:
                             res = await bot.send_group_msg(group_id=group_list[i], message=content)
+                            time.sleep(0.2)
                         except CQHttpError as e:
                             print(e)
 
@@ -207,6 +210,10 @@ async def hello():
             print(e)
 
 def loadDatas():
+    name_dict.clear()
+    live_list.clear()
+    uidlist_list.clear()
+    group_list.clear()
     try:
         with open('./datas/UID_Name_Dict', "r", encoding="utf-8") as f:
             for line in f:
@@ -348,7 +355,7 @@ def GetLiveStatus(uid,i):
             live_msg = []
             live_msg.append(name_dict[uid] +'直播中:' + live_title)
             live_msg.append('[CQ:image,file='+live_cover+']')
-            live_msg.append('直播地址:'+live_url+'当前观看人数:'+live_watcher)
+            live_msg.append('直播地址:'+live_url+'\n当前观看人数:'+live_watcher)
             return live_msg
     return ''
 
@@ -390,6 +397,7 @@ async def add_uid_name_dict(session: CommandSession):
         for content in msg:
             try:
                 res = await session.send(content)
+                time.sleep(0.2)
             except CQHttpError as e:
                 print(e) 
 
