@@ -1,417 +1,137 @@
 # -*-coding:utf8-*-
-import nonebot
-from nonebot import on_command, CommandSession
-from nonebot import on_natural_language, NLPSession, IntentCommand
-from nonebot import permission as perm
-from aiocqhttp.exceptions import Error as CQHttpError
-from aiocqhttp import MessageSegment
-from datetime import datetime
-import random
-import requests
-import json
-import time
-import os
+# import nonebot
+from nonebot import init,load_plugins,run
+# from nonebot import on_command, CommandSession
+# from nonebot import on_natural_language, NLPSession, IntentCommand
+# from nonebot import permission as perm
+# from aiocqhttp.exceptions import Error as CQHttpError
+# from aiocqhttp import MessageSegment
+# from datetime import datetime
+# import random
+# import requests
+# import json
+# import time
+# import os
 from os import path
- 
 import config
-
-name_dict={}
-uidlist_list= []
-group_list=[]
-live_list=[]
-tempmsg = [] #复读延迟
-
-bilisearch_switch = True 
-repeat_switch = True
-grass_switch = True
-human_switch = True
-
-debug_group = 1087849813
 
 def main():
     # 初始化配置信息
-    nonebot.init(config)
-    # 载入数据
-    loadDatas()
+    init(config)
     # 载入插件
-    nonebot.load_plugins(
-        path.join(path.dirname(__file__), 'plugins'),
-        'plugins'
-        )
+    load_plugins(path.join(path.dirname(__file__), 'plugins'), 'plugins')
     # 运行bot
-    nonebot.run()
-
-#复读
-@on_natural_language(only_to_me=False)
-async def repeat(session: NLPSession):
-    if repeat_switch:
-        global tempmsg
-        msg = session.ctx["message"]
-        groupnum=str(session.ctx['group_id'])
-        print('群%s收到消息%s' % (groupnum, msg))
-        if groupnum in group_list:
-            rnd = random.randint(1, 100)
-            print('复读随机数:%d' % (rnd))
-            if rnd <= 1:
-                print('生草')
-                await session.send('草', at_sender=True)
-            if rnd >= 98:
-                print('复读')
-                if session.msg_images:
-                    seq = MessageSegment.image(session.msg_images[0])
-                    await session.send(seq)
-                else:
-                    await session.send(msg)
-            if rnd in range(85, 88):
-                print('记录延迟复读')
-                tempmsg.append(msg)
-                # tempmsg[random.randint(1, 5)] = msg
-            if rnd in range(15, 18):
-                print('复读延迟复读')
-                if tempmsg: #判断非空
-                    i = random.randint(0, len(tempmsg)-1)
-                    await session.send(tempmsg[i])
-                    tempmsg.remove(tempmsg[i])
-            if rnd in range(67, 68):
-                await session.send('?')
-        
-#生草
-@on_natural_language({'对劲', '问题', '草', '?', '？', '行', '啊','有一说一', '确实', '没错', '可以', '好', '坏', '成精', '来了', '走了'}, only_to_me=False)
-async def grass(session: NLPSession):
-    if grass_switch:
-        msg = session.ctx["message"]
-        groupnum=str(session.ctx['group_id'])
-        if groupnum in group_list:
-            rnd = random.randint(1, 100)
-            print('问题随机数:%d' % (rnd))
-            if rnd <= 1:
-                await session.send('不对劲')
-            if rnd == 2:
-                await session.send('你有问题', at_sender=True)
-            if rnd == 5:
-                await session.send(u'؟?ذذ؟??¿؟زز¿؟¿???ذ¿')
-            if rnd == 6:
-                await session.send('我觉得不行')
-            if rnd == 7:
-                await session.send('你很懂哦')
-            if rnd == 9:
-                await session.send('挺好')
-            if rnd == 10:
-                await session.send('确实', at_sender=True)
-            if rnd == 11:
-                await session.send('好', at_sender=True)
-            if rnd == 12:
-                await session.send('我觉得ok')
-            if rnd == 13:
-                await session.send('你这不行')
-            if rnd == 14:
-                await session.send('溜了溜了')
-            if rnd == 15:
-                await session.send('这不好吧')
-#yygq
-@on_natural_language({'不会','就这','应该','你','懂','在', '知道', '会', '看'}, only_to_me=False)
-async def human(session: NLPSession):
-    if human_switch:
-        msg = session.ctx["message"]
-        groupnum=str(session.ctx['group_id'])
-        if groupnum in group_list:
-            rnd = random.randint(1, 100)
-            print('问题随机数:%d' % (rnd))
-            if rnd <= 5:
-                await session.send('不会吧?不会吧?不会有人看这个吧?')
-            if rnd in range(6,11):
-                await session.send('啊,这')
-            if rnd in range(11,16):
-                await session.send('就这?', at_sender=True)
-            if rnd in range(16,21):
-                await session.send('有事?', at_sender=True)
-            if rnd in range(21,26):
-                await session.send('你在教我做事?', at_sender=True)
-            
-
-#指令控制
-@on_command('启动推送', aliases=('开始推送',), permission=perm.SUPERUSER, only_to_me=False)
-async def start_bilisearch(session: CommandSession):
-    global bilisearch_switch
-    await hello()
-    bilisearch_switch = True
-
-@on_command('关闭推送', aliases=('停止推送','取消推送'), permission=perm.SUPERUSER, only_to_me=False)
-async def close_bilisearch(session: CommandSession):
-    global bilisearch_switch
-    await session.send('已停止b站动态推送功能')
-    bilisearch_switch = False
-
-@on_command('启动复读', aliases=('开始复读',), permission=perm.SUPERUSER, only_to_me=False)
-async def start_repeat(session: CommandSession):
-    global repeat_switch
-    await session.send('已开启复读功能')
-    repeat_switch = True
-
-@on_command('关闭复读', aliases=('停止复读','取消复读'), permission=perm.SUPERUSER, only_to_me=False)
-async def close_repeat(session: CommandSession):
-    global repeat_switch
-    await session.send('已停止复读功能')
-    repeat_switch = False
-
-@on_command('启动生草', aliases=('开始生草',), permission=perm.SUPERUSER, only_to_me=False)
-async def start_grass(session: CommandSession):
-    global grass_switch
-    await session.send('已开启生草功能')
-    grass_switch = True
-
-@on_command('关闭生草', aliases=('停止生草','取消生草'), permission=perm.SUPERUSER, only_to_me=False)
-async def close_grass(session: CommandSession):
-    global grass_switch
-    await session.send('已停止生草功能')
-    grass_switch = False
-
-@on_command('功能列表', aliases=('功能状态'), permission=perm.SUPERUSER, only_to_me=False)
-async def switch_ask(session: CommandSession):
-    msg = '当前功能列表:\nb站动态推送  %s\n复读  %s\n生草  %s' % ('启动中' if bilisearch_switch else '已关闭', '启动中' if repeat_switch else '已关闭','启动中' if grass_switch else '已关闭' )
-    await session.send(msg)
-
-# @nonebot.scheduler.scheduled_job('interval',seconds=30) #测试用
-@nonebot.scheduler.scheduled_job('interval',minutes=5)
-async def _():
-    # 列表提示
-    # global first_start
-    # if first_start==True:
-    #     await hello()
-    #     first_start=False
-    loadDatas()
-    if bilisearch_switch:
-        bot = nonebot.get_bot()
-        for i in range(0, len(group_list)): #遍历所有群
-            # for uidlist in uidlist_list: #遍历群索引对应关注列表
-            if i < len(uidlist_list):
-                for uid in uidlist_list[i]:  #遍历每个uid
-                    time.sleep(1)
-                    dynamic_content = GetDynamicStatus(uid, i)
-                    for content in dynamic_content:
-                        try:
-                            res = await bot.send_group_msg(group_id=group_list[i], message=content)
-                            time.sleep(0.2)
-                        except CQHttpError as e:
-                            print(e)
-            if i < len(live_list):
-                for uid in live_list[i]:         #遍历每个uid
-                    time.sleep(1)
-                    live_msg = GetLiveStatus(uid, i)
-                    for content in live_msg:
-                        try:
-                            res = await bot.send_group_msg(group_id=group_list[i], message=content)
-                            time.sleep(0.2)
-                        except CQHttpError as e:
-                            print(e)
-
-async def hello():
-    bot = nonebot.get_bot()
-    for i in range(0, len(group_list)): #遍历所有群
-        hello_msg = '已开启b站动态推送功能,当前关注列表: '
-        # for uidlist in uidlist_list: #遍历群索引对应关注列表
-        for uid in uidlist_list[i]:         #遍历每个uid
-            hello_msg = hello_msg+name_dict[uid]+' '
-        # print(hello_msg)
-        try:
-            hello_msg = await bot.send_group_msg(group_id=group_list[i], message=hello_msg)
-        except CQHttpError as e:
-            print(e)
-
-def loadDatas():
-    name_dict.clear()
-    live_list.clear()
-    uidlist_list.clear()
-    group_list.clear()
-    try:
-        with open('./datas/UID_Name_Dict', "r", encoding="utf-8") as f:
-            for line in f:
-                str_t = str(line).strip()#清理/n和空格
-                t = str_t.split(',') #分割
-                name_dict[t[0]] = t[1]
-            f.close()
-            # print (name_dict)
-    except Exception as err:
-        print (err)
-        exit()
-    try:
-        with open('./datas/UID_Live_List', "r", encoding="utf-8") as f:
-            for line in f:
-                str_t = str(line).strip()#清理/n和空格
-                t = str_t.split(',') #分割
-                live_list.append(t)
-            f.close()
-            # print (group_list)
-    except Exception as err:
-        print (err)
-        exit()
-    try:
-        with open('./datas/UID_List', "r", encoding="utf-8") as f:
-            for line in f:
-                str_t = str(line).strip()#清理/n和空格
-                t = str_t.split(',') #分割
-                uidlist_list.append(t)
-            f.close()
-            # print (uidlist_list)
-    except Exception as err:
-        print (err)
-        exit()
-    try:
-        with open('./datas/QQ_Group_List', "r", encoding="utf-8") as f:
-            for line in f:
-                str_t = str(line).strip()#清理/n和空格
-                group_list.append(str_t)
-            f.close()
-            # print (group_list)
-    except Exception as err:
-        print (err)
-        exit()
-
-
-#用户uid 用户名列表索引
-def GetDynamicStatus(uid, i):
-    res = requests.get('https://api.vc.bilibili.com/dynamic_svr/v1/dynamic_svr/space_history?host_uid='+str(uid)+'offset_dynamic_id=0')
-    res.encoding='utf-8'
-    res = res.text
-    cards_data = json.loads(res)
-    cards_data = cards_data['data']['cards']
-    if not os.path.exists('./dynamics/'):
-        os.mkdir('./dynamics')
-    try:
-        with open('./dynamics/'+str(uid)+'_'+str(i)+'Dynamic','r') as f:
-            last_dynamic_str = f.read()
-            f.close()
-    except Exception as err:
-        last_dynamic_str=''
-        print(err)
-    if last_dynamic_str == '':
-        last_dynamic_str = cards_data[1]['desc']['dynamic_id_str']
-    # print(last_dynamic_str)
-    index = 0
-    content_list=[]
-    cards_data[0]['card'] = json.loads(cards_data[0]['card'],encoding='gb2312')
-    nowtime = time.time().__int__()
-    # card是字符串，需要重新解析
-    while last_dynamic_str != cards_data[index]['desc']['dynamic_id_str']:
-        #这条是600秒前发的。
-        if nowtime-cards_data[index]['desc']['timestamp'] > 600:
-            break
-        try:
-            if (cards_data[index]['desc']['type'] == 64):
-                content_list.append(name_dict[uid] +'发了新专栏「'+ cards_data[index]['card']['title'] + '」并说： ' +cards_data[index]['card']['dynamic'])
-                imageurls = cards_data[index]['card']['image_urls']
-                if imageurls:
-                    for images in cards_data[index]['card']['image_urls']:
-                        content_list.append('[CQ:image,file='+images+']')
-            else:
-                if (cards_data[index]['desc']['type'] == 8):
-                    content_list.append(name_dict[uid] + '发了新视频「'+ cards_data[index]['card']['title'] + '」并说： ' +cards_data[index]['card']['dynamic'])
-                    content_list.append('[CQ:image,file='+cards_data[index]['card']['pic']+']')
-                else:         
-                    if ('description' in cards_data[index]['card']['item']):
-                        # 带图新动态
-                        content_list.append(name_dict[uid] + '发了新动态： ' +cards_data[index]['card']['item']['description'])
-                        # CQ使用参考：[CQ:image,file=http://i1.piimg.com/567571/fdd6e7b6d93f1ef0.jpg]
-                        for pic_info in cards_data[index]['card']['item']['pictures']:
-                            content_list.append('[CQ:image,file='+pic_info['img_src']+']')
-                    else:
-                        # 转发动态
-                        if 'origin_user' in cards_data[index]['card']:
-                            origin_name = cards_data[index]['card']['origin_user']['info']['uname']
-                            content_list.append(name_dict[uid]+ '转发了「'+ origin_name + '」的动态并说： ' +cards_data[index]['card']['item']['content'])
-                        else:
-                            #这个是不带图的自己发的动态
-                            content_list.append(name_dict[uid]+ '发了新动态： ' +cards_data[index]['card']['item']['content'])
-            content_list.append('本条动态地址为'+'https://t.bilibili.com/'+ cards_data[index]['desc']['dynamic_id_str'])
-        except Exception as err:
-                print('PROCESS ERROR')
-                print(err)
-        index += 1
-#        print(len(cards_data))
-#        print(index)
-        if len(cards_data) == index:
-            break
-        cards_data[index]['card'] = json.loads(cards_data[index]['card'])
-    f = open('./dynamics/'+str(uid)+'_'+str(i)+'Dynamic','w')
-    f.write(cards_data[0]['desc']['dynamic_id_str'])
-    f.close()
-    return content_list
-
-
-def GetLiveStatus(uid,i):
-    res = requests.get('https://api.live.bilibili.com/room/v1/Room/getRoomInfoOld?mid='+str(uid))
-    res.encoding = 'utf-8'
-    res = res.text
-    try:
-        with open('./dynamics/'+str(uid)+'_'+str(i)+'Live','r') as f:
-            last_live_str = f.read()
-            f.close()
-    except Exception as err:
-            last_live_str = '0'
-            print(err)
-    live_data = json.loads(res)
-    live_data = live_data['data']
-    now_live_status = str(live_data['liveStatus'])
-    f = open('./dynamics/'+str(uid)+'_'+str(i)+'Live','w')
-    f.write(now_live_status)
-    f.close()
-    if last_live_str == '0':
-        if now_live_status == '1':
-            live_title = live_data['title']
-            live_url = live_data['url']
-            live_cover = live_data['cover']
-            live_watcher = str(live_data['online'])
-            live_msg = []
-            live_msg.append(name_dict[uid] +'直播中:' + live_title)
-            live_msg.append('[CQ:image,file='+live_cover+']')
-            live_msg.append('直播地址:'+live_url+'\n当前观看人数:'+live_watcher)
-            return live_msg
-    return ''
-
-@on_command('.测试', aliases=('.test'), only_to_me=False)
-async def test(session: CommandSession):
-    await session.send(MessageSegment.image(os.getcwd()+"/grass.jpg"))
-
-# 关注数据管理
-@on_command('.字典查询', aliases=('.uid'), only_to_me=False)
-async def search_uid_name_dict(session: CommandSession):
-    uid = session.current_arg_text.strip()
-    if not uid:
-        await session.send('你uid呢?')
-        return
-    if uid in name_dict:
-        await session.send('查询到uid'+uid+'->'+name_dict[uid])
-    else:
-        await session.send('uid'+uid+'未添加,可用过\".添加uid uid\"或\".add uid\"添加.')
-
-@on_command('.添加uid', aliases=('.add'), only_to_me=False)
-async def add_uid_name_dict(session: CommandSession):
-    uid = session.current_arg_text.strip()
-    if not uid:
-        await session.send('你uid呢?')
-        return
-    if uid in name_dict:
-        await session.send('uid'+uid+'('+name_dict[uid]+')'+'已存在.')
-    else:
-        res = requests.get('https://api.bilibili.com/x/space/acc/info?mid='+str(uid))
-        res.encoding = 'utf-8'
-        res = res.text
-        user_data = json.loads(res)
-        data = user_data['data']
-        msg = []
-        msg.append('查询到uid'+uid)
-        msg.append('[CQ:image,file='+data['face']+']')
-        msg.append('用户名'+data['name']+',性别'+data['sex']+',个人签名'+data['sign'])
-        msg.append('已添加到关注字典(不存在的,没写完呢),可通过xxx指令添加到动态关注或直播关注列表(在写了).')
-        for content in msg:
-            try:
-                res = await session.send(content)
-                time.sleep(0.2)
-            except CQHttpError as e:
-                print(e) 
+    run()
 
 if __name__ == "__main__":
     main()
+            
+
+# #指令控制
+# @on_command('启动推送', aliases=('开始推送',), permission=perm.SUPERUSER, only_to_me=False)
+# async def start_bilisearch(session: CommandSession):
+#     global bilisearch_switch
+#     await hello()
+#     bilisearch_switch = True
+
+# @on_command('关闭推送', aliases=('停止推送','取消推送'), permission=perm.SUPERUSER, only_to_me=False)
+# async def close_bilisearch(session: CommandSession):
+#     global bilisearch_switch
+#     await session.send('已停止b站动态推送功能')
+#     bilisearch_switch = False
+
+# @on_command('启动复读', aliases=('开始复读',), permission=perm.SUPERUSER, only_to_me=False)
+# async def start_repeat(session: CommandSession):
+#     global repeat_switch
+#     await session.send('已开启复读功能')
+#     repeat_switch = True
+
+# @on_command('关闭复读', aliases=('停止复读','取消复读'), permission=perm.SUPERUSER, only_to_me=False)
+# async def close_repeat(session: CommandSession):
+#     global repeat_switch
+#     await session.send('已停止复读功能')
+#     repeat_switch = False
+
+# @on_command('启动生草', aliases=('开始生草',), permission=perm.SUPERUSER, only_to_me=False)
+# async def start_grass(session: CommandSession):
+#     global grass_switch
+#     await session.send('已开启生草功能')
+#     grass_switch = True
+
+# @on_command('关闭生草', aliases=('停止生草','取消生草'), permission=perm.SUPERUSER, only_to_me=False)
+# async def close_grass(session: CommandSession):
+#     global grass_switch
+#     await session.send('已停止生草功能')
+#     grass_switch = False
+
+# @on_command('功能列表', aliases=('功能状态'), permission=perm.SUPERUSER, only_to_me=False)
+# async def switch_ask(session: CommandSession):
+#     msg = '当前功能列表:\nb站动态推送  %s\n复读  %s\n生草  %s' % ('启动中' if bilisearch_switch else '已关闭', '启动中' if repeat_switch else '已关闭','启动中' if grass_switch else '已关闭' )
+#     await session.send(msg)
+
+
+
+# async def hello():
+#     bot = nonebot.get_bot()
+#     for i in range(0, len(group_list)): #遍历所有群
+#         hello_msg = '已开启b站动态推送功能,当前关注列表: '
+#         # for uidlist in uidlist_list: #遍历群索引对应关注列表
+#         for uid in uidlist_list[i]:         #遍历每个uid
+#             hello_msg = hello_msg+name_dict[uid]+' '
+#         # print(hello_msg)
+#         try:
+#             hello_msg = await bot.send_group_msg(group_id=group_list[i], message=hello_msg)
+#         except CQHttpError as e:
+#             print(e)
+
+
+
+
+
+
+# @on_command('.测试', aliases=('.test'), only_to_me=False)
+# async def test(session: CommandSession):
+#     await session.send(MessageSegment.image(os.getcwd()+"/grass.jpg"))
+
+# # 关注数据管理
+# @on_command('.字典查询', aliases=('.uid'), only_to_me=False)
+# async def search_uid_name_dict(session: CommandSession):
+#     uid = session.current_arg_text.strip()
+#     if not uid:
+#         await session.send('你uid呢?')
+#         return
+#     if uid in name_dict:
+#         await session.send('查询到uid'+uid+'->'+name_dict[uid])
+#     else:
+#         await session.send('uid'+uid+'未添加,可用过\".添加uid uid\"或\".add uid\"添加.')
+
+# @on_command('.添加uid', aliases=('.add'), only_to_me=False)
+# async def add_uid_name_dict(session: CommandSession):
+#     uid = session.current_arg_text.strip()
+#     if not uid:
+#         await session.send('你uid呢?')
+#         return
+#     if uid in name_dict:
+#         await session.send('uid'+uid+'('+name_dict[uid]+')'+'已存在.')
+#     else:
+#         res = requests.get('https://api.bilibili.com/x/space/acc/info?mid='+str(uid))
+#         res.encoding = 'utf-8'
+#         res = res.text
+#         user_data = json.loads(res)
+#         data = user_data['data']
+#         msg = []
+#         msg.append('查询到uid'+uid)
+#         msg.append('[CQ:image,file='+data['face']+']')
+#         msg.append('用户名'+data['name']+',性别'+data['sex']+',个人签名'+data['sign'])
+#         msg.append('已添加到关注字典(不存在的,没写完呢),可通过xxx指令添加到动态关注或直播关注列表(在写了).')
+#         for content in msg:
+#             try:
+#                 res = await session.send(content)
+#                 time.sleep(0.2)
+#             except CQHttpError as e:
+#                 print(e) 
+
+
 
 
 # @on_command('weather', aliases=('的天气', '天气预报', '查天气'))
