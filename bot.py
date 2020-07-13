@@ -26,6 +26,8 @@ repeat_switch = True
 grass_switch = True
 human_switch = True
 
+debug_group = 1087849813
+
 def main():
     # 初始化配置信息
     nonebot.init(config)
@@ -74,7 +76,7 @@ async def repeat(session: NLPSession):
                 await session.send('?')
         
 #生草
-@on_natural_language({'对劲', '问题', '草', '?', '？', '行', '这', '啊', '知道', '懂', '会'}, only_to_me=False)
+@on_natural_language({'对劲', '问题', '草', '?', '？', '行', '啊','有一说一', '确实', '没错', '可以', '好', '坏', '成精', '来了', '走了'}, only_to_me=False)
 async def grass(session: NLPSession):
     if grass_switch:
         msg = session.ctx["message"]
@@ -84,41 +86,48 @@ async def grass(session: NLPSession):
             print('问题随机数:%d' % (rnd))
             if rnd <= 1:
                 await session.send('不对劲')
-            if rnd >= 99:
+            if rnd == 2:
                 await session.send('你有问题', at_sender=True)
-            if rnd == 4:
-                await session.send('啊,这')
             if rnd == 5:
                 await session.send(u'؟?ذذ؟??¿؟زز¿؟¿???ذ¿')
             if rnd == 6:
                 await session.send('我觉得不行')
             if rnd == 7:
                 await session.send('你很懂哦')
-            if rnd == 8:
-                await session.send('不会吧?不会吧?')
-#人性化复读
-@on_natural_language({'有一说一', '确实', '没错', '可以', '好', '坏', '成精', '来了', '走了'}, only_to_me=False)
+            if rnd == 9:
+                await session.send('挺好')
+            if rnd == 10:
+                await session.send('确实', at_sender=True)
+            if rnd == 11:
+                await session.send('好', at_sender=True)
+            if rnd == 12:
+                await session.send('我觉得ok')
+            if rnd == 13:
+                await session.send('你这不行')
+            if rnd == 14:
+                await session.send('溜了溜了')
+            if rnd == 15:
+                await session.send('这不好吧')
+#yygq
+@on_natural_language({'不会','就这','应该','你','懂','在', '知道', '会', '看'}, only_to_me=False)
 async def human(session: NLPSession):
-	if human_switch:
-		msg = session.ctx["message"]
-		groupnum=str(session.ctx['group_id'])
-		if groupnum in group_list:
-			rnd = random.randint(1, 100)
-			print('问题随机数:%d' % (rnd))
-			if rnd <= 1:
-				await session.send('挺好')
-			if rnd >= 99:
-				await session.send('确实', at_sender=True)
-			if rnd == 2:
-				await session.send('好', at_sender=True)
-			if rnd == 3:
-				await session.send('我觉得ok')
-			if rnd == 4:
-				await session.send('你这不行')
-			if rnd == 5:
-				await session.send('溜了溜了')
-			if rnd == 6:
-				await session.send('这不好吧')
+    if human_switch:
+        msg = session.ctx["message"]
+        groupnum=str(session.ctx['group_id'])
+        if groupnum in group_list:
+            rnd = random.randint(1, 100)
+            print('问题随机数:%d' % (rnd))
+            if rnd <= 5:
+                await session.send('不会吧?不会吧?不会有人看这个吧?')
+            if rnd in range(6,11):
+                await session.send('啊,这')
+            if rnd in range(11,16):
+                await session.send('就这?', at_sender=True)
+            if rnd in range(16,21):
+                await session.send('有事?', at_sender=True)
+            if rnd in range(21,26):
+                await session.send('你在教我做事?', at_sender=True)
+            
 
 #指令控制
 @on_command('启动推送', aliases=('开始推送',), permission=perm.SUPERUSER, only_to_me=False)
