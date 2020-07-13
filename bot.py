@@ -1,6 +1,6 @@
 # -*-coding:utf8-*-
 # import nonebot
-from nonebot import init,load_plugins,run
+from nonebot import init, load_plugins, run
 # from nonebot import on_command, CommandSession
 # from nonebot import on_natural_language, NLPSession, IntentCommand
 # from nonebot import permission as perm
@@ -15,6 +15,7 @@ from nonebot import init,load_plugins,run
 from os import path
 import config
 
+
 def main():
     # 初始化配置信息
     init(config)
@@ -23,9 +24,10 @@ def main():
     # 运行bot
     run()
 
+
 if __name__ == "__main__":
     main()
-            
+
 
 # #指令控制
 # @on_command('启动推送', aliases=('开始推送',), permission=perm.SUPERUSER, only_to_me=False)
@@ -70,7 +72,6 @@ if __name__ == "__main__":
 #     await session.send(msg)
 
 
-
 # async def hello():
 #     bot = nonebot.get_bot()
 #     for i in range(0, len(group_list)): #遍历所有群
@@ -83,10 +84,6 @@ if __name__ == "__main__":
 #             hello_msg = await bot.send_group_msg(group_id=group_list[i], message=hello_msg)
 #         except CQHttpError as e:
 #             print(e)
-
-
-
-
 
 
 # @on_command('.测试', aliases=('.test'), only_to_me=False)
@@ -129,9 +126,7 @@ if __name__ == "__main__":
 #                 res = await session.send(content)
 #                 time.sleep(0.2)
 #             except CQHttpError as e:
-#                 print(e) 
-
-
+#                 print(e)
 
 
 # @on_command('weather', aliases=('的天气', '天气预报', '查天气'))
@@ -143,7 +138,7 @@ if __name__ == "__main__":
 
 # @weather.args_parser
 # async def _(session: CommandSession):
-#     stripped_arg = session.current_arg_text.strip() 
+#     stripped_arg = session.current_arg_text.strip()
 # 　　 # current_arg_text.strip()是用来去掉字符串的首位空格
 
 #     if session.is_first_run:

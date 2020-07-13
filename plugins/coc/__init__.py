@@ -1,12 +1,14 @@
 # -*-coding:utf8-*-
 from nonebot import on_command, CommandSession
-from .data_source import rollCard,roll
+from .data_source import rollCard, roll
+
 
 @on_command('coc', aliases=('车卡', '我要车卡', '车个卡'), only_to_me=False)
 async def makeCard(session: CommandSession):
     card = await rollCard()
     for msg in card:
         await session.send(msg)
+
 
 @on_command('roll', aliases=('.r'), only_to_me=False)
 async def rollpoint(session: CommandSession):
@@ -18,6 +20,7 @@ async def rollpoint(session: CommandSession):
 
     await session.send('你roll出了10000')
 
+
 @on_command('check', aliases=('c'), only_to_me=False)
 async def check(session: CommandSession):
     reg = session.current_arg_text.strip()
@@ -26,9 +29,11 @@ async def check(session: CommandSession):
     skill = reg.split(" ")
     await session.send('你的'+skill[0]+'等级为'+skill[1])
 
+
 @on_command('sancheck', aliases=('sc'), only_to_me=False)
 async def sancheck(session: CommandSession):
     await session.send('你失去了100san,疯掉了.')
+
 
 @on_command('cochelp', aliases=('跑团功能'), only_to_me=False)
 async def help(session: CommandSession):

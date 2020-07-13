@@ -8,6 +8,7 @@ import importlib
 import json
 importlib.reload(sys)
 
+
 async def get_weather_of_city(city: str) -> str:
     host = 'http://wthrcdn.etouch.cn/weather_mini?city='
     url = host + urllib.parse.quote(city)
