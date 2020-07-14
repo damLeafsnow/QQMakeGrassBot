@@ -6,14 +6,19 @@ from jieba import posseg
 
 # on_command 装饰器将函数声明为一个命令处理器
 # 这里 weather 为命令的名字，同时允许使用别名「天气」「天气查询」「查天气」
+
+
 @on_command('weather', aliases=('天气', '查天气', '天气查询'), only_to_me=False)
 async def weather(session: CommandSession):
-    city = session.get('city', prompt='你说哪个城市?')    # 从会话状态（session.state）中获取城市名称（city），如果当前不存在，则询问用户
+    # 从会话状态（session.state）中获取城市名称（city），如果当前不存在，则询问用户
+    city = session.get('city', prompt='你说哪个城市?')
     weather_report = await get_weather_of_city(city)
     await session.send(weather_report)
 
 # weather.args_parser 装饰器将函数声明为 weather 命令的参数解析器
 # 命令解析器用于将用户输入的参数解析成命令真正需要的数据
+
+
 @weather.args_parser
 async def _(session: CommandSession):
     # 清理首尾空白符号
@@ -22,7 +27,7 @@ async def _(session: CommandSession):
         if stripped_arg:        # 第一次运行参数不为空，意味着用户直接将城市名跟在命令名后面，作为参数传入,例如用户可能发送了：天气 南京
             session.state['city'] = stripped_arg
         return
-    
+
     if not stripped_arg:
         # 用户没有发送有效的城市名称（而是发送了空白字符），则提示重新输入
         # 这里 session.pause() 将会发送消息并暂停当前会话（该行后面的代码不会被运行）
@@ -34,6 +39,8 @@ async def _(session: CommandSession):
 # on_natural_language 装饰器将函数声明为一个自然语言处理器
 # keywords 表示需要响应的关键词，类型为任意可迭代对象，元素类型为 str
 # 如果不传入 keywords，则响应所有没有被当作命令处理的消息
+
+
 @on_natural_language({'天气'}, only_to_me=False)
 async def _(session: NLPSession):
     # 去掉消息首尾的空白符
