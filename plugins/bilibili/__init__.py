@@ -46,7 +46,7 @@ async def _():
                         except CQHttpError as e:
                             # print(e)
                             await bot.send_group_msg(group_id=debug_group, message='推送直播信息错误:\n'+str(e))
-    await bot.send_group_msg(group_id=debug_group, message='信息推送完成.')
+    # await bot.send_group_msg(group_id=debug_group, message='信息推送完成.') #看起来不能一直发
 
 # 收到b站链接
 @on_natural_language({'BV','av'}, only_to_me=False)
