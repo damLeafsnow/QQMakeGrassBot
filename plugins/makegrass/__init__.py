@@ -42,13 +42,15 @@ async def repeat(session: NLPSession):
 
 
 # 反问
-@on_natural_language({'你', '我', '吗', '?', '？'}, only_to_me=False)
+@on_natural_language({'你', '我', '不', '吗', '?', '？'}, only_to_me=False)
 async def ask(session: NLPSession):
     msg = str(session.event["message"]).strip('?？吗')+'!'
-    msg = msg.replace('你', '乪')
-    msg = msg.replace('我', '你')
-    msg = msg.replace('乪', '我')
-    await session.send(msg, at_sender=True)
+    if (len(msg) >= 3):
+        msg = msg.replace('不', '')
+        msg = msg.replace('你', '乪')
+        msg = msg.replace('我', '你')
+        msg = msg.replace('乪', '我')
+        await session.send(msg, at_sender=True)
 
 
 # 生草
@@ -90,7 +92,7 @@ async def grass(session: NLPSession):
 # yygq
 
 
-@on_natural_language({'不会', '就这', '应该', '懂', '在', '知道', '会', '看'},
+@on_natural_language({'就这', '应该', '懂', '在', '知道', '会', '看'},
                      only_to_me=False)
 async def human(session: NLPSession):
     rnd = randint(1, 100)
