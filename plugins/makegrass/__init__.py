@@ -41,8 +41,19 @@ async def repeat(session: NLPSession):
         await session.send('详情点击:http://game.granbluefantasy.jp/')
 
 
+# 反问
+@on_natural_language({'你', '我', '吗', '?', '？'}, only_to_me=False)
+async def ask(session: NLPSession):
+    msg = str(session.event["message"]).strip('?？吗')+'!'
+    msg = msg.replace('你', '乪')
+    msg = msg.replace('我', '你')
+    msg = msg.replace('乪', '我')
+    await session.send(msg, at_sender=True)
+
+
 # 生草
-@on_natural_language({'对劲', '问题', '草', '?', '？', '行', '啊', '有一说一', '确实', '没错', '可以', '好', '坏', '成精', '来了', '走了'}, only_to_me=False)
+@on_natural_language({'对劲', '问题', '草', '行', '啊', '有一说一', '确实', '没错', '可以', '好',
+                      '坏', '成精', '来了', '走了'}, only_to_me=False)
 async def grass(session: NLPSession):
     # if grass_switch:
     # msg = session.ctx["message"]
@@ -79,7 +90,8 @@ async def grass(session: NLPSession):
 # yygq
 
 
-@on_natural_language({'不会', '就这', '应该', '你', '懂', '在', '知道', '会', '看'}, only_to_me=False)
+@on_natural_language({'不会', '就这', '应该', '懂', '在', '知道', '会', '看'},
+                     only_to_me=False)
 async def human(session: NLPSession):
     rnd = randint(1, 100)
     print('问题随机数:%d' % (rnd))
