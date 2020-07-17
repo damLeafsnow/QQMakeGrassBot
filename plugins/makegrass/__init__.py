@@ -51,7 +51,9 @@ async def ask(session: NLPSession):
     if rnd <= 5:
         msg = str(session.event["message"]).strip('?？吗')+'!'
         if (len(msg) >= 3):
+            msg = msg.replace('不过', '')
             msg = msg.replace('不', '')
+            msg = msg.replace('没', '')
             msg = msg.replace('你', '乪')
             msg = msg.replace('我', '你')
             msg = msg.replace('乪', '我')
