@@ -56,13 +56,13 @@ async def _():
 @on_natural_language({'BV', 'av'}, only_to_me=False)
 async def biliAlz(session: NLPSession):
     # await session.send('你刚才,发了b站链接对吧!', at_sender=True)
-    try:
-        await get_bot().send_group_msg(group_id=debug_group, message='收到包含BV或av号的信息:\n'+str(session.event["message"]))
-    except CQHttpError as e:
-        print(e)
+    # try:
+    #     await get_bot().send_group_msg(group_id=debug_group, message='收到包含BV或av号的信息:\n'+str(session.event["message"]))
+    # except CQHttpError as e:
+    #     print(e)
     msg = str(session.event["message"])
     list = msg.split('/')
-    await get_bot().send_group_msg(group_id=debug_group, message='解析结果:\n'+','.join(list))
+    # await get_bot().send_group_msg(group_id=debug_group, message='解析结果:\n'+','.join(list))
     vid = 0
     info = []
     for i in list:
@@ -85,7 +85,7 @@ async def biliAlz(session: NLPSession):
     for content in info:
         await session.send(content)
         sleep(1)
-    await get_bot().send_group_msg(group_id=debug_group, message='解析完成,已推送数据')
+    # await get_bot().send_group_msg(group_id=debug_group, message='解析完成,已推送数据')
 
 # 短链单独分析
 
@@ -93,13 +93,13 @@ async def biliAlz(session: NLPSession):
 @on_natural_language({'b23'}, only_to_me=False)
 async def bilib23(session: NLPSession):
     # await session.send('你刚才,发了b站链接对吧!', at_sender=True)
-    try:
-        await get_bot().send_group_msg(group_id=debug_group, message='收到包含b23的短链信息:\n'+str(session.event["message"]))
-    except CQHttpError as e:
-        print(e)
+    # try:
+    #     await get_bot().send_group_msg(group_id=debug_group, message='收到包含b23的短链信息:\n'+str(session.event["message"]))
+    # except CQHttpError as e:
+    #     print(e)
     msg = str(session.event["message"])
     list = msg.split('/')
-    await get_bot().send_group_msg(group_id=debug_group, message='解析结果:\n'+','.join(list))
+    # await get_bot().send_group_msg(group_id=debug_group, message='解析结果:\n'+','.join(list))
     info = []
     vid = ''
     i = 0
@@ -118,7 +118,7 @@ async def bilib23(session: NLPSession):
     for content in info:
         await session.send(content)
         sleep(1)
-    await get_bot().send_group_msg(group_id=debug_group, message='解析完成,已推送数据')
+    # await get_bot().send_group_msg(group_id=debug_group, message='解析完成,已推送数据')
 
 
 def loadDatas():
