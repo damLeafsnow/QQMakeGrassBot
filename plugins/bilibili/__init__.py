@@ -31,7 +31,7 @@ async def _():
                     for content in dynamic_content:
                         try:
                             await bot.send_group_msg(group_id=group_list[i], message=content)
-                            sleep(0.2)
+                            sleep(2)
                         except CQHttpError as e:
                             # print(e)
                             await bot.send_group_msg(group_id=debug_group, message='推送动态信息错误:\n'+str(e))
@@ -44,7 +44,7 @@ async def _():
                     for content in live_msg:
                         try:
                             await bot.send_group_msg(group_id=group_list[i], message=content)
-                            sleep(0.2)
+                            sleep(2)
                         except CQHttpError as e:
                             # print(e)
                             await bot.send_group_msg(group_id=debug_group, message='推送直播信息错误:\n'+str(e))

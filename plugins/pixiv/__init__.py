@@ -8,26 +8,45 @@ from time import sleep
 import os
 
 debug_group = 1087849813
+num = 5
+page = 5
+bookmark = 1000
 
 
 @on_command('pixiv', only_to_me=False)
 async def pixiv_analysis(session: CommandSession):
+    # await session.send('功能修复中.')
     bot = get_bot()
-    reg = session.current_arg_text.strip()
-    await bot.send_group_msg(group_id=debug_group, message='p站搜索中,tag:'+reg)
+    reg = session.current_arg_text
+    # seq = MessageSegment.image(os.getcwd()+'\\pixdata\\0.jpg')
+    # await bot.send_group_msg(group_id=debug_group, message=seq)
+
+    # try:
+    # await bot.send_group_msg(group_id=debug_group,
+    #  message='[CQ:image,file=https://img.cheerfun.dev:233/c/540x540_70/img-master/img/2019/12/26/10/47/03/78484613_p0_master1200.jpg]')
+    #  message='[CQ:image,file=https://img.cheerfun.dev:233/c/540x540_70/img-master/img/2019/12/26/10/47/03/78484613_p0_master1200.jpg]')
+    # except CQHttpError as e:
+    # print(e)
+
     if not reg:
         await session.send('未输入搜索关键词.')
-    ill = searchByTag(reg)
+    await bot.send_group_msg(group_id=debug_group, message='p站搜索中,tag:'+reg)
+    await session.send("当前参数: 查找%d张图片,搜索页数%d,最低收藏数%d,可通过.pixivnum .pixivpage .pixivmark修改,正在搜索..." % (num, page, bookmark))
+    datas = searchByTag(reg, num, page, bookmark)
     # print(ill)
-    if not ill:
-        await session.send('未搜索到图片.')
-    # await session.send('搜索到前五张图片:')
-    await session.send(ill[0])
-    for i in range(1, len(ill)):
-        # await session.send(content)
-        seq = MessageSegment.image(os.getcwd()+ill[i])
-        await session.send(seq)
-        sleep(1)
+    if not datas:
+        await session.send('未搜索到图片或网络错误.')
+    else:
+        await session.send('搜索到%d组图片.' % len(datas))
+    for data in datas:
+        await session.send(data[0])
+        for i in range(1, len(data)):
+            seq = MessageSegment.image(os.getcwd()+'\\pixdata\\'+data[i])
+            try:
+                await session.send(seq)
+            except CQHttpError as e:
+                print(e)
+            sleep(2)
 
 
 @on_command('acg', only_to_me=False)
@@ -35,6 +54,48 @@ async def setu(session: CommandSession):
     if getPic():
         seq = MessageSegment.image(os.getcwd()+'\\pixdata\\x.png')
         await session.send(seq)
+
+
+@on_command('pixivpage', only_to_me=False)
+async def pixiv_pageset(session: CommandSession):
+    global page
+    reg = session.current_arg_text.strip()
+    if reg.isdigit():
+        if int(reg) <= 0:
+            await session.send('爬.', at_sender=True)
+            return
+        page = int(reg)
+        await session.send('搜索页数已修改为%d页.' % page)
+    else:
+        await session.send('数字格式错误.')
+
+
+@on_command('pixivmark', only_to_me=False)
+async def pixiv_markset(session: CommandSession):
+    global bookmark
+    reg = session.current_arg_text.strip()
+    if reg.isdigit():
+        if int(reg) <= 0:
+            await session.send('爬.', at_sender=True)
+            return
+        bookmark = int(reg)
+        await session.send('最低收藏数已修改为%d.' % bookmark)
+    else:
+        await session.send('数字格式错误.')
+
+
+@on_command('pixivnum', only_to_me=False)
+async def pixiv_numset(session: CommandSession):
+    global num
+    reg = session.current_arg_text.strip()
+    if reg.isdigit():
+        if int(reg) <= 0:
+            await session.send('爬.', at_sender=True)
+            return
+        num = int(reg)
+        await session.send('查找图片数已修改为%d.' % num)
+    else:
+        await session.send('数字格式错误.')
 
 # 定时推送排行榜
 # @scheduler.scheduled_job('interval', minutes=5)
