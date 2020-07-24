@@ -3,7 +3,7 @@ from nonebot import on_command, CommandSession
 from .data_source import rollCard, roll
 
 
-@on_command('coc', aliases=('车卡', '我要车卡', '车个卡'), only_to_me=False)
+@on_command('coc', aliases=('车卡'), only_to_me=False)
 async def makeCard(session: CommandSession):
     card = await rollCard()
     for msg in card:
@@ -38,7 +38,7 @@ async def sancheck(session: CommandSession):
 @on_command('cochelp', aliases=('跑团功能'), only_to_me=False)
 async def help(session: CommandSession):
     msg = '功能列表:\n'
-    msg += '人物车卡: .coc .车卡 我要车卡 车个卡\n'
+    msg += '人物车卡: .coc .车卡\n'
     msg += '指定骰点: .roll .r(格式为.r x1dy1+x2dy2+...+z)\n'
     msg += '技能检定: .sancheck .sc(格式为.sc 意志)\n'
     msg += '理智检定: .check .c(格式为.c 技能名 技能等级)'

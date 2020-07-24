@@ -1,4 +1,4 @@
-from urllib.request import urlopen
+# from urllib.request import urlopen
 import requests
 import json
 import time
@@ -56,16 +56,67 @@ def get_bilibili_info_by_b23tv(b23str: str) -> []:
             vid = tag['content'].split('/')[-2][2:]
             return get_bilibili_info_by_avid(vid)
 
-# 用户uid 用户名列表索引
+
+# def get_bilibili_ep_info(epid: str) -> []:
+#     res = requests.get(
+#         'https://api.bilibili.com/x/web-interface/view?aid='+str(epid))
+#     res.encoding = 'utf-8'
+#     res = res.text
+#     info = json.loads(res)
+#     if info['code'] != 0:  # 解析错误
+#         return []
+
+#     data = info['data']
+#     owner = data['owner']
+#     info = []
+#     info.append('标题:'+data['title']+'UP主:'+owner['name'] +
+#                 '\n简介:'+data['desc']+'\n分类:'+data['tname']+'\n')
+#     info.append('[CQ:image,file='+data['pic']+']')
+#     info.append('视频链接:\nhttps://www.bilibili.com/video/' +
+#                 data['bvid']+'\n\nhttps://www.bilibili.com/video/av'+str(data['aid']))
+#     return info
 
 
-def GetDynamicStatus(uid, name, i):
+def get_bilibili_live_info(uid: str) -> []:
+    uid = getUIDbyLiveid(uid)
+    user_info = getUserInfobyUID(uid)
+    live_info = getLiveStatusbyUID(uid)
+    print(user_info)
+    print(live_info)
+    # 用户不存在
+    # 用户没有直播间
+    if not uid or not user_info or not live_info:
+        return []
+
+    user_name = user_info['name']
+    user_face = user_info['face']
+    live_state = live_info['liveStatus']
+    live_title = live_info['title']
+    live_url = live_info['url']
+    live_cover = live_info['cover']
+    live_watcher = str(live_info['online'])
+
+    msg = []
+    msg.append('这是'+user_name+'的直播间.')
+    msg.append('[CQ:image,file='+user_face+']')
+    if live_state == 1:
+        msg.append('正在直播,直播标题:' + live_title)
+        msg.append('[CQ:image,file='+live_cover+']')
+        msg.append('直播地址:'+live_url+'\n当前观看人数:'+live_watcher)
+    else:
+        msg.append('当前未开播.')
+    return msg
+
+
+def GetDynamicStatus(uid, i):
     res = requests.get(
         'https://api.vc.bilibili.com/dynamic_svr/v1/dynamic_svr/space_history?host_uid='+str(uid)+'offset_dynamic_id=0')
     res.encoding = 'utf-8'
     res = res.text
     cards_data = json.loads(res)
     cards_data = cards_data['data']['cards']
+    user_info = getUserInfobyUID(uid)
+
     if not path.exists('./dynamics/'):
         mkdir('./dynamics')
     try:
@@ -78,6 +129,7 @@ def GetDynamicStatus(uid, name, i):
     if last_dynamic_str == '':
         last_dynamic_str = cards_data[1]['desc']['dynamic_id_str']
     # print(last_dynamic_str)
+
     index = 0
     content_list = []
     cards_data[0]['card'] = json.loads(
@@ -91,7 +143,7 @@ def GetDynamicStatus(uid, name, i):
         try:
             if (cards_data[index]['desc']['type'] == 64):
                 content_list.append(
-                    name + '发了新专栏「' + cards_data[index]['card']['title'] + '」并说： ' + cards_data[index]['card']['dynamic'])
+                    user_info['name'] + '发了新专栏「' + cards_data[index]['card']['title'] + '」并说： ' + cards_data[index]['card']['dynamic'])
                 imageurls = cards_data[index]['card']['image_urls']
                 if imageurls:
                     for images in cards_data[index]['card']['image_urls']:
@@ -99,14 +151,14 @@ def GetDynamicStatus(uid, name, i):
             else:
                 if (cards_data[index]['desc']['type'] == 8):
                     content_list.append(
-                        name + '发了新视频「' + cards_data[index]['card']['title'] + '」并说： ' + cards_data[index]['card']['dynamic'])
+                        user_info['name'] + '发了新视频「' + cards_data[index]['card']['title'] + '」并说： ' + cards_data[index]['card']['dynamic'])
                     content_list.append(
                         '[CQ:image,file='+cards_data[index]['card']['pic']+']')
                 else:
                     if ('description' in cards_data[index]['card']['item']):
                         # 带图新动态
                         content_list.append(
-                            name + '发了新动态： ' + cards_data[index]['card']['item']['description'])
+                            user_info['name'] + '发了新动态： ' + cards_data[index]['card']['item']['description'])
                         # CQ使用参考：[CQ:image,file=http://i1.piimg.com/567571/fdd6e7b6d93f1ef0.jpg]
                         for pic_info in cards_data[index]['card']['item']['pictures']:
                             content_list.append(
@@ -116,11 +168,11 @@ def GetDynamicStatus(uid, name, i):
                         if 'origin_user' in cards_data[index]['card']:
                             origin_name = cards_data[index]['card']['origin_user']['info']['uname']
                             content_list.append(
-                                name + '转发了「' + origin_name + '」的动态并说： ' + cards_data[index]['card']['item']['content'])
+                                user_info['name'] + '转发了「' + origin_name + '」的动态并说： ' + cards_data[index]['card']['item']['content'])
                         else:
                             # 这个是不带图的自己发的动态
                             content_list.append(
-                                name + '发了新动态： ' + cards_data[index]['card']['item']['content'])
+                                user_info['name'] + '发了新动态： ' + cards_data[index]['card']['item']['content'])
             content_list.append('本条动态地址为'+'https://t.bilibili.com/' +
                                 cards_data[index]['desc']['dynamic_id_str'])
         except Exception as err:
@@ -138,11 +190,7 @@ def GetDynamicStatus(uid, name, i):
     return content_list
 
 
-def GetLiveStatus(uid, name, i):
-    res = requests.get(
-        'https://api.live.bilibili.com/room/v1/Room/getRoomInfoOld?mid='+str(uid))
-    res.encoding = 'utf-8'
-    res = res.text
+def GetLiveStatus(uid, i):
     try:
         with open('./dynamics/'+str(uid)+'_'+str(i)+'Live', 'r') as f:
             last_live_str = f.read()
@@ -150,8 +198,9 @@ def GetLiveStatus(uid, name, i):
     except Exception as err:
         last_live_str = '0'
         print(err)
-    live_data = json.loads(res)
-    live_data = live_data['data']
+    live_data = getLiveStatusbyUID(str(uid))
+    user_info = getUserInfobyUID(uid)
+    
     now_live_status = str(live_data['liveStatus'])
     f = open('./dynamics/'+str(uid)+'_'+str(i)+'Live', 'w')
     f.write(now_live_status)
@@ -163,8 +212,50 @@ def GetLiveStatus(uid, name, i):
             live_cover = live_data['cover']
             live_watcher = str(live_data['online'])
             live_msg = []
-            live_msg.append(name + '直播中:' + live_title)
+            live_msg.append(user_info['name'] + '直播中:' + live_title)
             live_msg.append('[CQ:image,file='+live_cover+']')
             live_msg.append('直播地址:'+live_url+'\n当前观看人数:'+live_watcher)
             return live_msg
     return ''
+
+
+# 将直播间id转换为up主uid
+def getUIDbyLiveid(liveid: str) -> str:
+    header = {
+        'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/80.0.3987.116 Safari/537.36'
+    }
+    res = requests.get('https://live.bilibili.com/'+liveid, headers=header)
+    res.encoding = 'utf-8'
+    soup = BeautifulSoup(res.text, 'html.parser')
+
+    json_text = ''
+    for tag in soup.find_all(re.compile("^script")):
+        if str(tag).startswith('<script>window'):
+            json_text = str(tag).split('=', 1)[1][:-9]
+            break
+    js = json.loads(json_text)
+    print(js['roomInitRes']['data']['uid'])
+    return str(js['roomInitRes']['data']['uid'])
+
+
+# 根据uid查询直播状态
+def getLiveStatusbyUID(uid: str) -> {}:
+    res = requests.get(
+        'https://api.live.bilibili.com/room/v1/Room/getRoomInfoOld?mid='+str(uid))
+    res.encoding = 'utf-8'
+    js = json.loads(res.text)
+    if js['data']['roomStatus'] == 1:
+        return js['data']
+    else:
+        return {}
+
+
+# 根据uid查询用户信息
+def getUserInfobyUID(uid: str) -> {}:
+    res = requests.get('https://api.bilibili.com/x/space/acc/info?mid='+str(uid))
+    res.encoding = 'utf-8'
+    js = json.loads(res.text)
+    if js['code'] == 0:
+        return js['data']
+    else:
+        return {}
