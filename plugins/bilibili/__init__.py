@@ -17,9 +17,8 @@ debug_group = 1087849813
 # 定时推送列表数据
 
 
-
-# @scheduler.scheduled_job('interval', minutes=5)
-@scheduler.scheduled_job('interval',seconds=30) #测试用
+# @scheduler.scheduled_job('interval',seconds=30) #测试用
+@scheduler.scheduled_job('interval', minutes=5)
 async def _():
     if not dynamic_list or not live_list:
         loadDatas()
