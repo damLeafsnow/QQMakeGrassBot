@@ -4,6 +4,10 @@ from .data_source import get_weather_of_city
 from nonebot import on_natural_language, NLPSession, IntentCommand
 from jieba import posseg
 
+__plugin_name__ = 'weather'
+__plugin_usage__ = r"天气 城市 查询天气"
+
+
 # on_command 装饰器将函数声明为一个命令处理器
 # 这里 weather 为命令的名字，同时允许使用别名「天气」「天气查询」「查天气」
 

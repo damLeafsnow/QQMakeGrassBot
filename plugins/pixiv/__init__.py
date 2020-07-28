@@ -7,6 +7,10 @@ from aiocqhttp import MessageSegment
 from time import sleep
 import os
 
+__plugin_name__ = 'pixiv'
+__plugin_usage__ = r".pixivnum .pixivpage .pixivmark设置搜索,.pixiv 关键字 搜索"
+
+
 debug_group = 1087849813
 num = 5
 page = 5
@@ -31,7 +35,7 @@ async def pixiv_analysis(session: CommandSession):
     if not reg:
         await session.send('未输入搜索关键词.')
     await bot.send_group_msg(group_id=debug_group, message='p站搜索中,tag:'+reg)
-    await session.send("当前参数: 查找%d张图片,搜索页数%d,最低收藏数%d,可通过.pixivnum .pixivpage .pixivmark修改,正在搜索..." % (num, page, bookmark))
+    await session.send("当前参数: 查找%d张图片,搜索页数%d,最低收藏数%d,正在搜索..." % (num, page, bookmark))
     datas = searchByTag(reg, num, page, bookmark)
     # print(ill)
     if not datas:

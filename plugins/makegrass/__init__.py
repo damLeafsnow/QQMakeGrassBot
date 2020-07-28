@@ -4,6 +4,10 @@ from aiocqhttp import MessageSegment
 from random import randint
 # from .data_source import rollCard,roll
 
+__plugin_name__ = 'makegrass'
+__plugin_usage__ = r"复读,生草回复等"
+
+
 tempmsg = []  # 复读延迟
 
 # 复读

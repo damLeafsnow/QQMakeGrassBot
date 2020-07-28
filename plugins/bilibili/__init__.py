@@ -14,6 +14,10 @@ dynamic_list = {}
 live_list = {}
 debug_group = 1087849813
 
+__plugin_name__ = 'bilibili'
+__plugin_usage__ = r"b站视频直播间解析,动态直播推送"
+
+
 # 定时推送列表数据
 
 

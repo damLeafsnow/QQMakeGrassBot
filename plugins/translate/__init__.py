@@ -7,6 +7,9 @@ from .data_source import translate
 from time import sleep
 # import os
 
+__plugin_name__ = 'translate'
+__plugin_usage__ = r".tr 原文语种 目标语种 文本\n.tra 文本(自动检测并翻译为中文)\n.机翻 文本 获得草生机翻"
+
 
 @on_command('tr', only_to_me=False)
 async def tr(session: CommandSession):
@@ -19,9 +22,9 @@ async def tr(session: CommandSession):
         if result:
             await session.send('翻译:\n' + result)
         else:
-            await session.send('格式错误,输入格式:\n.tr 原文语种 目标语种 文本\n.tra 文本(自动检测并翻译为中文)')
+            await session.send('格式错误.')
     else:
-        await session.send('格式错误,输入格式:\n.tr 原文语种 目标语种 文本\n.tra 文本(自动检测并翻译为中文)')
+        await session.send('格式错误.')
 
 
 @on_command('tra', only_to_me=False)
@@ -34,32 +37,35 @@ async def tra(session: CommandSession):
         result = translate(text, from_reg, to_reg)
         await session.send('翻译:\n' + result)
     else:
-        await session.send('格式错误,输入格式:\n.tr 原文语种 目标语种 文本\n.tra 文本(自动检测并翻译为中文)')
+        await session.send('格式错误.')
 
 
 @on_command('机翻', only_to_me=False)
 async def tr_machine(session: CommandSession):
     reg = session.current_arg_text.strip()
     if reg:
-        # print('翻译结果:\n英文:%s\n日文:%s' % (en_str, jp_str))
-        # await session.send('功能修复中.')
-        # bot = get_bot()
-        # reg = session.current_arg_text.strip().split(' ')
-        # if(reg[0].isdigit()):
-        # times = int(reg[0])
         string = reg
         string = translate(string, 'auto', 'zh')
         sleep(1)
-        for i in range(0, 2):
-            string = translate(string, 'zh', 'wyw')
-            # print(string)
-            sleep(1)
-            string = translate(string, 'wyw', 'jp')
-            # print(string)
-            sleep(1)
-            string = translate(string, 'jp', 'zh')
-            # print(string)
-            sleep(1)
+        string = translate(string, 'zh', 'wyw')
+        print(string)
+        sleep(1)
+        str_list = list(string)
+        str_list.reverse()
+        string = ''.join(str_list)
+        print(string)
+        string = translate(string, 'zh', 'jp')
+        print(string)
+        sleep(1)
+        str_list = list(string)
+        str_list.reverse()
+        string = ''.join(str_list)
+        print(string)
+        string = translate(string, 'jp', 'en')
+        print(string)
+        sleep(1)
+        string = translate(string, 'en', 'zh')
+        print(string)
         await session.send(string)
     else:
         await session.send('格式错误')
