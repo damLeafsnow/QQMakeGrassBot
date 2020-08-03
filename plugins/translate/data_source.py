@@ -10,6 +10,7 @@ salt = random.randint(32768, 65536)
 
 def translate(text, fromLang='zh', toLang='en'):
     # 从文件读取api账号
+    # print(text)
     account = []
     try:
         with open('./datas/BAIDU_API', "r", encoding="utf-8") as f:
@@ -38,10 +39,12 @@ def translate(text, fromLang='zh', toLang='en'):
 # post请求
     res = requests.post(url, data=data)
     json_result = json.loads(res.content)
-    # print(json_result)
+    print(json_result)
 # 输入信息错误
     if('error_code' in json_result):
         return ''
-    trans_result = json.loads(res.content).get('trans_result')[0].get("dst")
+    trans_result = ''
+    for i in json.loads(res.content).get('trans_result'):
+        trans_result += '\n'+i.get("dst")
     # print(trans_result)
-    return str(trans_result)
+    return trans_result

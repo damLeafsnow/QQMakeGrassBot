@@ -13,7 +13,7 @@ __plugin_usage__ = r".tr 原文语种 目标语种 文本\n.tra 文本(自动检
 
 @on_command('tr', only_to_me=False)
 async def tr(session: CommandSession):
-    reg = session.current_arg_text.strip().split(' ', 2)
+    reg = session.current_arg_text.strip()  # .split(' ', 2)
     if len(reg) == 3:
         from_reg = reg[0]
         to_reg = reg[1]
@@ -35,7 +35,7 @@ async def tra(session: CommandSession):
         to_reg = 'zh'
         text = reg
         result = translate(text, from_reg, to_reg)
-        await session.send('翻译:\n' + result)
+        await session.send('翻译:' + result)  # result自带一次换行
     else:
         await session.send('格式错误.')
 
