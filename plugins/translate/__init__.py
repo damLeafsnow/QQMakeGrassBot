@@ -35,7 +35,7 @@ async def tra(session: CommandSession):
         to_reg = 'zh'
         text = reg
         result = translate(text, from_reg, to_reg)
-        await session.send('翻译:' + result)  # result自带一次换行
+        await session.send('翻译:\n' + result)
     else:
         await session.send('格式错误.')
 

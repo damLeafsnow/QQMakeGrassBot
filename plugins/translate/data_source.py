@@ -45,6 +45,6 @@ def translate(text, fromLang='zh', toLang='en'):
         return ''
     trans_result = ''
     for i in json.loads(res.content).get('trans_result'):
-        trans_result += '\n'+i.get("dst")
+        trans_result += i.get("dst")+'\n'
     # print(trans_result)
-    return trans_result
+    return trans_result.strip()

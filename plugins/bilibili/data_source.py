@@ -5,6 +5,7 @@ import time
 from os import path, mkdir
 from bs4 import BeautifulSoup
 import re
+from time import sleep
 
 
 def get_bilibili_info_by_avid(avid: str) -> []:
@@ -81,8 +82,8 @@ def get_bilibili_live_info(uid: str) -> []:
     uid = getUIDbyLiveid(uid)
     user_info = getUserInfobyUID(uid)
     live_info = getLiveStatusbyUID(uid)
-    print(user_info)
-    print(live_info)
+    # print(user_info)
+    # print(live_info)
     # 用户不存在
     # 用户没有直播间
     if not uid or not user_info or not live_info:
@@ -200,22 +201,22 @@ def GetLiveStatus(uid, i):
         print(err)
     live_data = getLiveStatusbyUID(str(uid))
     user_info = getUserInfobyUID(uid)
-    
-    now_live_status = str(live_data['liveStatus'])
-    f = open('./dynamics/'+str(uid)+'_'+str(i)+'Live', 'w')
-    f.write(now_live_status)
-    f.close()
-    if last_live_str == '0':
-        if now_live_status == '1':
-            live_title = live_data['title']
-            live_url = live_data['url']
-            live_cover = live_data['cover']
-            live_watcher = str(live_data['online'])
-            live_msg = []
-            live_msg.append(user_info['name'] + '直播中:' + live_title)
-            live_msg.append('[CQ:image,file='+live_cover+']')
-            live_msg.append('直播地址:'+live_url+'\n当前观看人数:'+live_watcher)
-            return live_msg
+    if live_data and user_info:
+        now_live_status = str(live_data['liveStatus'])
+        f = open('./dynamics/'+str(uid)+'_'+str(i)+'Live', 'w')
+        f.write(now_live_status)
+        f.close()
+        if last_live_str == '0':
+            if now_live_status == '1':
+                live_title = live_data['title']
+                live_url = live_data['url']
+                live_cover = live_data['cover']
+                live_watcher = str(live_data['online'])
+                live_msg = []
+                live_msg.append(user_info['name'] + '直播中:' + live_title)
+                live_msg.append('[CQ:image,file='+live_cover+']')
+                live_msg.append('直播地址:'+live_url+'\n当前观看人数:'+live_watcher)
+                return live_msg
     return ''
 
 
@@ -240,11 +241,30 @@ def getUIDbyLiveid(liveid: str) -> str:
 
 # 根据uid查询直播状态
 def getLiveStatusbyUID(uid: str) -> {}:
+    header = {
+        'authority': 'api.live.bilibili.com',
+        'method': 'GET',
+        'path': '/room/v1/Room/getRoomInfoOld?mid='+uid,
+        'scheme': 'https',
+        'accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9',
+        'accept-encoding': 'gzip, deflate, br',
+        'accept-language': 'zh-CN,zh;q=0.9,en;q=0.8,en-GB;q=0.7,en-US;q=0.6',
+        'cache-control': 'max-age=0',
+        'cookie': '_uuid=A92C9771-F0BF-7E52-1664-CCFF8D51A54653220infoc; buvid3=3725FDC3-E875-4E7F-9B0A-753B3D947C5553949infoc; LIVE_BUVID=AUTO1315839956368027; rpdid=|(kk|JRYk|0J\'ul)JmmlYJ~; DedeUserID=1855051; DedeUserID__ckMd5=e3ecf791def0522f; INTVER=-1; CURRENT_QUALITY=80; Hm_lvt_8a6e55dbd2870f0f5bc9194cddf32a02=1585215103,1585797622; sid=5uu34586; SESSDATA=0a4c1c88%2C1609644074%2Ce51af*71; bili_jct=f993a0f13daff3ca01a871ce32f14ac3; CURRENT_FNVAL=80; blackside_state=1; _dfcaptcha=0584e3b18ca8e0141f6e386a65b7a67c; PVID=14',
+        'sec-fetch-dest': 'document',
+        'sec-fetch-mode': 'navigate',
+        'sec-fetch-site': 'none',
+        'sec-fetch-user': '?1',
+        'upgrade-insecure-requests': '1',
+        'user-agent': 'Mozilla/5.0 (Windows NT 6.1; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/85.0.4183.83 Safari/537.36 Edg/85.0.564.44',
+    }
     res = requests.get(
-        'https://api.live.bilibili.com/room/v1/Room/getRoomInfoOld?mid='+str(uid))
+        'https://api.live.bilibili.com/room/v1/Room/getRoomInfoOld?mid='+str(uid), headers=header)
     res.encoding = 'utf-8'
     js = json.loads(res.text)
-    if js['data']['roomStatus'] == 1:
+    print('getLiveStatusbyUID')
+    print(js)
+    if js['code'] == 0 and js['data']['roomStatus'] == 1:
         return js['data']
     else:
         return {}
@@ -255,6 +275,8 @@ def getUserInfobyUID(uid: str) -> {}:
     res = requests.get('https://api.bilibili.com/x/space/acc/info?mid='+str(uid))
     res.encoding = 'utf-8'
     js = json.loads(res.text)
+    print('getUserInfobyUID')
+    print(js)
     if js['code'] == 0:
         return js['data']
     else:

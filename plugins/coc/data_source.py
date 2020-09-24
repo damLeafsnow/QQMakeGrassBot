@@ -86,12 +86,23 @@ def d6() -> int:
     return random.randint(1, 6)
 
 
-def roll(x: int, y: int) -> (str, int):
-    res = '( '
-    sum = 0
-    for i in range(0, x):
-        d = random.randint(1, y)
-        res += d+' '
-        sum += d
-    res += ')'
-    return res, sum
+def dice(maxpoint: int) -> int:
+    return random.randint(1, maxpoint)
+
+
+def diceN(times: int, maxpoint: int) -> []:
+    answer = []
+    for i in range(times):
+        answer.append(random.randint(1, maxpoint))
+    return answer
+
+
+# def roll(x: int, y: int) -> (str, int):
+#     res = '( '
+#     sum = 0
+#     for i in range(0, x):
+#         d = random.randint(1, y)
+#         res += d+' '
+#         sum += d
+#     res += ')'
+#     return res, sum

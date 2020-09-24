@@ -124,3 +124,12 @@ async def human(session: NLPSession):
             await session.send('有事?', at_sender=True)
         if rnd in range(21, 23):
             await session.send('你在教我做事?', at_sender=True)
+
+
+# 后浪
+@on_natural_language({'后浪'}, only_to_me=False)
+async def hl(session: NLPSession):
+    rnd = randint(1, 100)
+    print('后浪浓度:%d' % (rnd))
+    if rnd <= 10:
+        await session.send('不愧是后浪.')
