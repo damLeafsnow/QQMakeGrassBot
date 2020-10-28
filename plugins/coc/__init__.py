@@ -3,7 +3,7 @@ from nonebot import on_command, CommandSession
 from .data_source import rollCard, dice, diceN
 
 __plugin_name__ = 'coc'
-__plugin_usage__ = r"功能列表:\n人物车卡: .coc .车卡\n指定骰点: .roll .r(格式为.r x1dy1+x2dy2+...+z)\n技能检定: .check .c(格式为.c 技能名 技能等级)\n理智检定: .sancheck .c(格式为.sc 意志 成功掉san/失败掉san)"
+__plugin_usage__ = r"功能列表:\n人物车卡: .coc .车卡\n指定骰点: .roll .r(格式为.r x1dy1+x2dy2+...+z)\n技能检定: .check .鉴定(格式为.check 技能名 技能等级)\n理智检定: .sancheck .sc(格式为.sc 当前san值)"
 
 
 @on_command('coc', aliases=('车卡'), only_to_me=False)
@@ -67,10 +67,10 @@ async def check(session: CommandSession):
         elif point <= skill_lv:
             await session.send('%s的%s技能使用成功(%d),可喜可贺.' % (user, skill[0], point))
         elif point > skill_lv:
-            if skill_lv < 50 and point >= 96:
-                await session.send('%s的%s技能大失败了(%d),一定是技能等级太低的问题.' % (user, skill[0], point))
-            elif skill_lv > 50 and point == 100:
-                await session.send('%s的%s技能大失败了(%d),那可真蠢.' % (user, skill[0], point))
+            if point == 100:
+                await session.send('%s的%s技能大失败(%d),那可真蠢.' % (user, skill[0], point))
+            elif skill_lv < 50 and point >= 96:
+                await session.send('%s的%s技能大失败(%d),一定是技能等级太低的问题.' % (user, skill[0], point))
             else:
                 await session.send('%s的%s技能失败了(%d),令人遗憾.' % (user, skill[0], point))
     else:

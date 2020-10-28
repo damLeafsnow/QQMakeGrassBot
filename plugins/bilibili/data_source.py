@@ -20,11 +20,16 @@ def get_bilibili_info_by_avid(avid: str) -> []:
     data = info['data']
     owner = data['owner']
     info = []
-    info.append('标题:'+data['title']+'UP主:'+owner['name'] +
-                '\n简介:'+data['desc']+'\n分类:'+data['tname']+'\n')
-    info.append('[CQ:image,file='+data['pic']+']')
-    info.append('视频链接:\nhttps://www.bilibili.com/video/' +
-                data['bvid']+'\n\nhttps://www.bilibili.com/video/av'+str(data['aid']))
+    # info.append('标题:'+data['title']+'UP主:'+owner['name'] +
+    #             '\n简介:'+data['desc']+'\n分类:'+data['tname']+'\n')
+    # info.append('[CQ:image,file='+data['pic']+']\n\n'
+    #             + '视频链接:\nhttps://www.bilibili.com/video/' + data['bvid']
+    #             + '\n\nhttps://www.bilibili.com/video/av'+str(data['aid']))
+    info.append(data['title'] + '\n' + '[CQ:image,file='+data['pic']+']\n'
+                + 'UP主:' + owner['name'] + '\n分类:' + data['tname']
+                + '\n简介:\n' + data['desc'] + '\n\n'
+                + '视频链接:\nhttps://www.bilibili.com/video/' + data['bvid']
+                )
     return info
 
 
@@ -40,11 +45,11 @@ def get_bilibili_info_by_bvid(bvid: str) -> []:
     data = info['data']
     owner = data['owner']
     info = []
-    info.append('标题:'+data['title']+'UP主:'+owner['name'] +
-                '\n简介:'+data['desc']+'\n分类:'+data['tname']+'\n')
-    info.append('[CQ:image,file='+data['pic']+']')
-    info.append('视频链接:\nhttps://www.bilibili.com/video/' +
-                data['bvid']+'\n\nhttps://www.bilibili.com/video/av'+str(data['aid']))
+    info.append(data['title'] + '\n' + '[CQ:image,file='+data['pic']+']\n'
+                + 'UP主:' + owner['name'] + '\n分类:' + data['tname']
+                + '\n简介:\n' + data['desc'] + '\n\n'
+                + '视频链接:\nhttps://www.bilibili.com/video/' + data['bvid']
+                )
     return info
 
 
@@ -80,17 +85,18 @@ def get_bilibili_info_by_b23tv(b23str: str) -> []:
 
 def get_bilibili_live_info(uid: str) -> []:
     uid = getUIDbyLiveid(uid)
-    user_info = getUserInfobyUID(uid)
+    # user_info = getUserInfobyUID(uid)
     live_info = getLiveStatusbyUID(uid)
     # print(user_info)
     # print(live_info)
     # 用户不存在
     # 用户没有直播间
-    if not uid or not user_info or not live_info:
+    # if not uid or not user_info or not live_info:
+    if not uid or not live_info:
         return []
 
-    user_name = user_info['name']
-    user_face = user_info['face']
+    # user_name = user_info['name']
+    # user_face = user_info['face']
     live_state = live_info['liveStatus']
     live_title = live_info['title']
     live_url = live_info['url']
@@ -98,12 +104,10 @@ def get_bilibili_live_info(uid: str) -> []:
     live_watcher = str(live_info['online'])
 
     msg = []
-    msg.append('这是'+user_name+'的直播间.')
-    msg.append('[CQ:image,file='+user_face+']')
+    # msg.append('这是'+user_name+'的直播间.\n'+'[CQ:image,file='+user_face+']')
     if live_state == 1:
-        msg.append('正在直播,直播标题:' + live_title)
-        msg.append('[CQ:image,file='+live_cover+']')
-        msg.append('直播地址:'+live_url+'\n当前观看人数:'+live_watcher)
+        msg.append(live_title + '\n\n[CQ:image,file='+live_cover+']'
+                   + '\n\n直播地址:'+live_url+'\n当前观看人数:'+live_watcher)
     else:
         msg.append('当前未开播.')
     return msg
@@ -115,6 +119,9 @@ def GetDynamicStatus(uid, i):
     res.encoding = 'utf-8'
     res = res.text
     cards_data = json.loads(res)
+    print("GetDynamicStatus")
+    if cards_data['data']["has_more"] == 0:
+        return
     cards_data = cards_data['data']['cards']
     user_info = getUserInfobyUID(uid)
 
@@ -151,10 +158,10 @@ def GetDynamicStatus(uid, i):
                         content_list.append('[CQ:image,file='+images+']')
             else:
                 if (cards_data[index]['desc']['type'] == 8):
-                    content_list.append(
-                        user_info['name'] + '发了新视频「' + cards_data[index]['card']['title'] + '」并说： ' + cards_data[index]['card']['dynamic'])
-                    content_list.append(
-                        '[CQ:image,file='+cards_data[index]['card']['pic']+']')
+                    content_list.append(user_info['name'] + '发了新视频「' + cards_data[index]['card']['title'] + '」'
+                        + '[CQ:image,file='+cards_data[index]['card']['pic']+']\n'
+						+  cards_data[index]['card']['dynamic']
+						)
                 else:
                     if ('description' in cards_data[index]['card']['item']):
                         # 带图新动态
@@ -272,7 +279,8 @@ def getLiveStatusbyUID(uid: str) -> {}:
 
 # 根据uid查询用户信息
 def getUserInfobyUID(uid: str) -> {}:
-    res = requests.get('https://api.bilibili.com/x/space/acc/info?mid='+str(uid))
+    res = requests.get(
+        'https://api.bilibili.com/x/space/acc/info?mid='+str(uid))
     res.encoding = 'utf-8'
     js = json.loads(res.text)
     print('getUserInfobyUID')

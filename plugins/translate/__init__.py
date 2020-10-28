@@ -8,10 +8,10 @@ from time import sleep
 # import os
 
 __plugin_name__ = 'translate'
-__plugin_usage__ = r".tr 原文语种 目标语种 文本\n.tra 文本(自动检测并翻译为中文)\n.机翻 文本 获得草生机翻"
+__plugin_usage__ = r".tr/.翻译 原文语种 目标语种 文本\n.tra/.自动翻译 文本(自动检测并翻译为中文)\n.机翻 文本 获得草生机翻"
 
 
-@on_command('tr', only_to_me=False)
+@on_command('tr', aliases=('翻译'), only_to_me=False)
 async def tr(session: CommandSession):
     reg = session.current_arg_text.strip()  # .split(' ', 2)
     if len(reg) == 3:
@@ -27,7 +27,7 @@ async def tr(session: CommandSession):
         await session.send('格式错误.')
 
 
-@on_command('tra', only_to_me=False)
+@on_command('tra', aliases=('自动翻译'), only_to_me=False)
 async def tra(session: CommandSession):
     reg = session.current_arg_text.strip()
     if reg:
