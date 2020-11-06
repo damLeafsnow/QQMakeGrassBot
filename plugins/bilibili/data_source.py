@@ -119,7 +119,7 @@ def GetDynamicStatus(uid, i):
     res.encoding = 'utf-8'
     res = res.text
     cards_data = json.loads(res)
-    print("GetDynamicStatus")
+    # print("GetDynamicStatus")
     if cards_data['data']["has_more"] == 0:
         return
     cards_data = cards_data['data']['cards']
@@ -242,7 +242,7 @@ def getUIDbyLiveid(liveid: str) -> str:
             json_text = str(tag).split('=', 1)[1][:-9]
             break
     js = json.loads(json_text)
-    print(js['roomInitRes']['data']['uid'])
+    # print(js['roomInitRes']['data']['uid'])
     return str(js['roomInitRes']['data']['uid'])
 
 
@@ -269,8 +269,8 @@ def getLiveStatusbyUID(uid: str) -> {}:
         'https://api.live.bilibili.com/room/v1/Room/getRoomInfoOld?mid='+str(uid), headers=header)
     res.encoding = 'utf-8'
     js = json.loads(res.text)
-    print('getLiveStatusbyUID')
-    print(js)
+    # print('getLiveStatusbyUID')
+    # print(js)
     if js['code'] == 0 and js['data']['roomStatus'] == 1:
         return js['data']
     else:
@@ -283,8 +283,8 @@ def getUserInfobyUID(uid: str) -> {}:
         'https://api.bilibili.com/x/space/acc/info?mid='+str(uid))
     res.encoding = 'utf-8'
     js = json.loads(res.text)
-    print('getUserInfobyUID')
-    print(js)
+    # print('getUserInfobyUID')
+    # print(js)
     if js['code'] == 0:
         return js['data']
     else:
